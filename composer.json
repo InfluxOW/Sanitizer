@@ -1,0 +1,23 @@
+{
+    "name": "influx/sanitizer",
+    "type": "library",
+    "description": "JSON sanitizer",
+    "authors": [
+        {
+            "name": "InfluxOW",
+            "email": "krochak_n@mail.ru"
+        }
+    ],
+    "require": {
+        "php": "^7.4"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^9.4"
+    },
+    "autoload": {
+        "psr-4": {
+            "Influx\\Sanitizer\\": "src/"
+        }
+    },
+    "license": "MIT"
+}
