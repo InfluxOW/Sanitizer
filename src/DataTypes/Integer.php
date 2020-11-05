@@ -8,27 +8,18 @@ use Influx\Sanitizer\Exceptions\NormalizationException;
 
 class Integer implements DataType, Normalizable
 {
-    public $data;
-
-    public function __construct($data)
+    public function validate($data, array $options = []): bool
     {
-        $this->data = $data;
+        return is_int($data);
     }
 
-    public function validate(): bool
-    {
-        return is_int($this->data);
-    }
-
-    public function normalize(): DataType
+    public function normalize($data, array $options = [])
     {
         if (
-            is_numeric($this->data) ||
-            (is_string($this->data) && preg_match('/^-?\d+$/', $this->data))
+            is_numeric($data) ||
+            (is_string($data) && preg_match('/^-?\d+$/', $data))
         ) {
-            return new self(
-                (int) $this->data
-            );
+            return (int) $data;
         }
 
         throw new NormalizationException($this->getErrorMessage());

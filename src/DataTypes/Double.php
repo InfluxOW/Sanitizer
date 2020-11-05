@@ -8,27 +8,18 @@ use Influx\Sanitizer\Exceptions\NormalizationException;
 
 class Double implements DataType, Normalizable
 {
-    public $data;
-
-    public function __construct($data)
+    public function validate($data, array $options = []): bool
     {
-        $this->data = $data;
+        return is_float($data);
     }
 
-    public function validate(): bool
-    {
-        return is_float($this->data);
-    }
-
-    public function normalize(): DataType
+    public function normalize($data, array $options = [])
     {
         if (
-            is_numeric($this->data) ||
-            (is_string($this->data) && preg_match('/^-?\d*\.?\d+$/', $this->data))
+            is_numeric($data) ||
+            (is_string($data) && preg_match('/^-?\d*\.?\d+$/', $data))
         ) {
-            return new self(
-                (float) $this->data
-            );
+            return (float) $data;
         }
 
         throw new NormalizationException($this->getErrorMessage());

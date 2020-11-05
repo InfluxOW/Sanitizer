@@ -5,10 +5,12 @@ namespace Influx\Sanitizer\Contracts;
 interface Normalizable
 {
     /**
-     * Returns DataType resolving instance with normalized value that passes validation.
+     * Returns normalized data that passes validation.
      *
-     * @return \Influx\Sanitizer\Contracts\DataType
+     * @param $data
+     * @param array $options
+     * @return mixed
      * @throws \Influx\Sanitizer\Exceptions\NormalizationException
      */
-    public function normalize(): DataType;
+    public function normalize($data, array $options = []);
 }

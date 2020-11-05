@@ -13,8 +13,8 @@ use Influx\Sanitizer\DataTypes\Structure;
 class Sanitizer
 {
     protected array $data;
-    protected $rules;
-    protected $dataTypes = [
+    protected array $rules;
+    protected array $dataTypes = [
         'string' => Str::class,
         'integer' => Integer::class,
         'float' => Double::class,
@@ -27,7 +27,7 @@ class Sanitizer
     {
         $this->data = json_decode($data, true, 512, JSON_THROW_ON_ERROR);
         $this->rules = $rules;
-        $this->dataTypes = $this->resolveDataTypes($customDataTypes);
+        $this->dataTypes = $this->mergeDataTypes($customDataTypes);
     }
 
     public function execute(): array
@@ -43,7 +43,7 @@ class Sanitizer
         return $result;
     }
 
-    private function resolveDataTypes($customDataTypes)
+    private function mergeDataTypes($customDataTypes)
     {
         foreach ($customDataTypes as $dataType) {
             if ($dataType instanceof DataType) {
@@ -58,14 +58,9 @@ class Sanitizer
 
     private function applyRule($rule, $value)
     {
-        if (is_array($rule)) {
-            if (count($rule) === 1 && is_string($rule[0])) {
-                $dt = new $rule[0]($value);
-            }
-        }
+        $dt = Helpers::resolveDataTypeInstance($rule);
 
-        if (is_string($rule)) {
-            $dt = new $rule($value);
-        }
     }
+
+
 }

@@ -8,24 +8,15 @@ use Influx\Sanitizer\Exceptions\NormalizationException;
 
 class Str implements DataType, Normalizable
 {
-    public $data;
-
-    public function __construct($data)
+    public function validate($data, array $options = []): bool
     {
-        $this->data = $data;
+        return is_string($data);
     }
 
-    public function validate(): bool
-    {
-        return is_string($this->data);
-    }
-
-    public function normalize(): DataType
+    public function normalize($data, array $options = [])
     {
         try {
-            return new self(
-                (string) $this->data
-            );
+            return (string) $data;
         } catch (\Exception $e) {
             throw new NormalizationException($this->getErrorMessage());
         }

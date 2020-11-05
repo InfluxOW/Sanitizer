@@ -5,11 +5,13 @@ namespace Influx\Sanitizer\Contracts;
 interface DataType
 {
     /**
-     * Checks if value passes validation.
+     * Checks if data passes validation.
      *
+     * @param $data
+     * @param array $options
      * @return bool
      */
-    public function validate(): bool;
+    public function validate($data, array $options = []): bool;
 
 
     /**

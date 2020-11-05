@@ -6,29 +6,18 @@ use Influx\Sanitizer\Contracts\DataType;
 
 class Structure implements DataType
 {
-    public $data;
-    protected array $keys;
-
-    public function __construct($data, array $keys)
+    public function validate($data, array $options = []): bool
     {
-        $this->data = $data;
-        $this->keys = $keys;
-    }
-
-    public function validate(): bool
-    {
-        foreach ($this->keys as $key => $value) {
-            if (is_array($value) && array_key_exists($key, $this->data) && is_array($this->data[$key])) {
-                $nestedStructure = new self($this->data[$key], $value);
-
-                if ($nestedStructure->validate()) {
+        foreach ($options['keys'] as $key => $value) {
+            if (is_array($value) && array_key_exists($key, $data) && is_array($data[$key])) {
+                if (static::validate($data[$key], $value)) {
                     continue;
                 }
 
                 return false;
             }
 
-            if (array_key_exists($value, $this->data)) {
+            if (array_key_exists($value, $data)) {
                 continue;
             }
 

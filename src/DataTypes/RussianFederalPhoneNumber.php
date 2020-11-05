@@ -8,26 +8,17 @@ use Influx\Sanitizer\Exceptions\NormalizationException;
 
 class RussianFederalPhoneNumber implements DataType, Normalizable
 {
-    public $data;
-
-    public function __construct($data)
+    public function validate($data, array $options = []): bool
     {
-        $this->data = $data;
+        return preg_match('/^7[489]\d{9}$/', $data);
     }
 
-    public function validate(): bool
+    public function normalize($data, array $options = [])
     {
-        return preg_match('/^(\+7|7|8)?[\s\-]?\(?[489]\d{2}\)?[\s\-]?\d{3}[\s\-]?\d{2}[\s\-]?\d{2}$/', $this->data);
-    }
+        if (preg_match('/^(\+7|7|8)?[\s\-]?\(?[489]\d{2}\)?[\s\-]?\d{3}[\s\-]?\d{2}[\s\-]?\d{2}$/', $data)) {
+            $phoneNumber = preg_replace('/\D/', '', $data);
 
-    public function normalize(): DataType
-    {
-        if (preg_match('/^(\+7|7|8)?[\s\-]?\(?[489]\d{2}\)?[\s\-]?\d{3}[\s\-]?\d{2}[\s\-]?\d{2}$/', $this->data)) {
-            $phoneNumber = preg_replace('/\D/', '', $this->data);
-
-            return new self(
-                preg_replace('/^8/', '7', $phoneNumber)
-            );
+            return preg_replace('/^8/', '7', $phoneNumber);
         }
 
         throw new NormalizationException($this->getErrorMessage());

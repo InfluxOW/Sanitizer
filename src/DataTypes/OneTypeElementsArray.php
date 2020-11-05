@@ -5,55 +5,32 @@ namespace Influx\Sanitizer\DataTypes;
 use Influx\Sanitizer\Contracts\DataType;
 use Influx\Sanitizer\Contracts\Normalizable;
 use Influx\Sanitizer\Exceptions\NormalizationException;
+use Influx\Sanitizer\Helpers;
 
 class OneTypeElementsArray implements DataType, Normalizable
 {
-    public $data;
-    protected string $type;
-    protected array $supportableTypes;
-
-    public function __construct($data, string $type, array $supportableTypes)
+    public function validate($data, array $options = []): bool
     {
-        $this->data = $data;
-        $this->type = $type;
-        $this->supportableTypes = $supportableTypes;
-    }
-
-    public function validate(): bool
-    {
-        $dataType = $this->getDataType();
-
-        $correctTypeData = array_filter($this->data, function ($value) use ($dataType) {
-            return (new $dataType($value))->validate();
+        $correctTypeData = array_filter($data, function ($value) use ($options) {
+            return Helpers::resolveDataTypeInstance($options['type'], $value)->validate();
         });
 
-        return count($correctTypeData) === count($this->data);
+        return count($correctTypeData) === count($data);
     }
 
-    public function normalize(): DataType
+    public function normalize($data, array $options = [])
     {
-        $dataType = $this->getDataType();
-
-        return array_map(function ($value) use ($dataType) {
+        return array_map(function ($value) use ($options) {
             try {
-                return (new $dataType($value))->normalize();
+                return Helpers::resolveDataTypeInstance($options['type'])->normalize();
             } catch (NormalizationException $e) {
                 throw new NormalizationException($this->getErrorMessage());
             }
-        }, $this->data);
+        }, $data);
     }
 
-    public function getErrorMessage($value = null): string
+    public function getErrorMessage(): string
     {
         return "Provided data is not a one type elements array and couldn't be converted to it.";
-    }
-
-    private function getDataType()
-    {
-        if (array_key_exists($this->type, $this->supportableTypes)) {
-            return $this->supportableTypes[$this->type];
-        }
-
-        throw new \InvalidArgumentException("Specified type is not in the supportable types list.");
     }
 }
