@@ -12,7 +12,7 @@ use Influx\Sanitizer\DataTypes\Structure;
 
 class Sanitizer
 {
-    protected $data;
+    protected array $data;
     protected $rules;
     protected $dataTypes = [
         'string' => Str::class,
@@ -25,14 +25,22 @@ class Sanitizer
 
     public function __construct(string $data, array $rules, array $customDataTypes = [])
     {
-        $this->data = $data;
+        $this->data = json_decode($data, true, 512, JSON_THROW_ON_ERROR);
         $this->rules = $rules;
         $this->dataTypes = $this->resolveDataTypes($customDataTypes);
     }
 
-    public function execute()
+    public function execute(): array
     {
-        
+        $result = [];
+
+        foreach ($this->data as $key => $value) {
+            $result[$key] = array_key_exists($key, $this->rules) ?
+                $this->applyRule($this->rules[$key], $value) :
+                $value;
+        }
+
+        return $result;
     }
 
     private function resolveDataTypes($customDataTypes)
@@ -46,5 +54,18 @@ class Sanitizer
         }
 
         return array_merge($this->dataTypes, $customDataTypes);
+    }
+
+    private function applyRule($rule, $value)
+    {
+        if (is_array($rule)) {
+            if (count($rule) === 1 && is_string($rule[0])) {
+                $dt = new $rule[0]($value);
+            }
+        }
+
+        if (is_string($rule)) {
+            $dt = new $rule($value);
+        }
     }
 }

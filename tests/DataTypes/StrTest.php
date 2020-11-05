@@ -48,13 +48,4 @@ class StrTest extends TestCase
 
         $str->normalize();
     }
-
-    /** @test */
-    public function it_knows_provided_value()
-    {
-        $value = 123456;
-        $str = (new Str($value));
-
-        self::assertEquals($value, $str->getData());
-    }
 }

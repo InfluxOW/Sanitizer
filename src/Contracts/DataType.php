@@ -5,7 +5,7 @@ namespace Influx\Sanitizer\Contracts;
 interface DataType
 {
     /**
-     * Checks if value satisfies validation rule.
+     * Checks if value passes validation.
      *
      * @return bool
      */
@@ -18,11 +18,4 @@ interface DataType
      * @return string
      */
     public function getErrorMessage(): string;
-
-    /**
-     * Returns provided data.
-     *
-     * @return mixed
-     */
-    public function getData();
 }

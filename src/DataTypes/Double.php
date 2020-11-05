@@ -8,7 +8,7 @@ use Influx\Sanitizer\Exceptions\NormalizationException;
 
 class Double implements DataType, Normalizable
 {
-    protected $data;
+    public $data;
 
     public function __construct($data)
     {
@@ -37,10 +37,5 @@ class Double implements DataType, Normalizable
     public function getErrorMessage(): string
     {
         return "Provided data is not a float and couldn't be converted to it.";
-    }
-
-    public function getData()
-    {
-        return $this->data;
     }
 }

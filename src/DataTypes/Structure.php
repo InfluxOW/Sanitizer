@@ -6,7 +6,7 @@ use Influx\Sanitizer\Contracts\DataType;
 
 class Structure implements DataType
 {
-    protected $data;
+    public $data;
     protected array $keys;
 
     public function __construct($data, array $keys)
@@ -41,10 +41,5 @@ class Structure implements DataType
     public function getErrorMessage(): string
     {
         return "Provided data doesn't match with the specified structure.";
-    }
-
-    public function getData()
-    {
-        return $this->data;
     }
 }

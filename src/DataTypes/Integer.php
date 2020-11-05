@@ -8,7 +8,7 @@ use Influx\Sanitizer\Exceptions\NormalizationException;
 
 class Integer implements DataType, Normalizable
 {
-    protected $data;
+    public $data;
 
     public function __construct($data)
     {
@@ -37,10 +37,5 @@ class Integer implements DataType, Normalizable
     public function getErrorMessage(): string
     {
         return "Provided data is not an integer and couldn't be converted to it.";
-    }
-
-    public function getData()
-    {
-        return $this->data;
     }
 }

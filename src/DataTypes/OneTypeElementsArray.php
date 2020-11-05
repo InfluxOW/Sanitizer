@@ -8,7 +8,7 @@ use Influx\Sanitizer\Exceptions\NormalizationException;
 
 class OneTypeElementsArray implements DataType, Normalizable
 {
-    protected $data;
+    public $data;
     protected string $type;
     protected array $supportableTypes;
 
@@ -46,11 +46,6 @@ class OneTypeElementsArray implements DataType, Normalizable
     public function getErrorMessage($value = null): string
     {
         return "Provided data is not a one type elements array and couldn't be converted to it.";
-    }
-
-    public function getData()
-    {
-        return $this->data;
     }
 
     private function getDataType()

@@ -8,7 +8,7 @@ use Influx\Sanitizer\Exceptions\NormalizationException;
 
 class Str implements DataType, Normalizable
 {
-    protected $data;
+    public $data;
 
     public function __construct($data)
     {
@@ -34,10 +34,5 @@ class Str implements DataType, Normalizable
     public function getErrorMessage(): string
     {
         return "Provided data is not a string and couldn't be converted to it.";
-    }
-
-    public function getData()
-    {
-        return $this->data;
     }
 }
