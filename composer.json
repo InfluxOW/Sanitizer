@@ -19,5 +19,10 @@
             "Influx\\Sanitizer\\": "src/"
         }
     },
+    "autoload-dev": {
+        "psr-4": {
+            "Influx\\Sanitizer\\Tests\\": "tests/"
+        }
+    },
     "license": "MIT"
 }
