@@ -13,4 +13,11 @@ interface Normalizable
      * @throws \Influx\Sanitizer\Exceptions\NormalizationException
      */
     public function normalize($data, array $options = []);
+
+    /**
+     * Returns normalization error message.
+     *
+     * @return string
+     */
+    public function getNormalizationErrorMessage(): string;
 }

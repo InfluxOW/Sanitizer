@@ -2,15 +2,20 @@
 
 namespace Influx\Sanitizer\DataTypes;
 
-use Influx\Sanitizer\Contracts\DataType;
+use Influx\Sanitizer\Contracts\Validatable;
 use Influx\Sanitizer\Contracts\Normalizable;
 use Influx\Sanitizer\Exceptions\NormalizationException;
 
-class RussianFederalPhoneNumber implements DataType, Normalizable
+class RussianFederalPhoneNumber implements Validatable, Normalizable
 {
     public function validate($data, array $options = []): bool
     {
         return preg_match('/^7[489]\d{9}$/', $data);
+    }
+
+    public function getValidationErrorMessage(): string
+    {
+        return "Provided data is not a russian federal phone number.";
     }
 
     public function normalize($data, array $options = [])
@@ -21,11 +26,11 @@ class RussianFederalPhoneNumber implements DataType, Normalizable
             return preg_replace('/^8/', '7', $phoneNumber);
         }
 
-        throw new NormalizationException($this->getErrorMessage());
+        throw new NormalizationException($this->getNormalizationErrorMessage());
     }
 
-    public function getErrorMessage(): string
+    public function getNormalizationErrorMessage(): string
     {
-        return "Provided data is not a russian federal phone number and couldn't be converted to it.";
+        return "Unable to convert provided data to a russian federal phone number.";
     }
 }

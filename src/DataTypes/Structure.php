@@ -2,9 +2,9 @@
 
 namespace Influx\Sanitizer\DataTypes;
 
-use Influx\Sanitizer\Contracts\DataType;
+use Influx\Sanitizer\Contracts\Validatable;
 
-class Structure implements DataType
+class Structure implements Validatable
 {
     public function validate($data, array $options = []): bool
     {
@@ -27,7 +27,7 @@ class Structure implements DataType
         return true;
     }
 
-    public function getErrorMessage(): string
+    public function getValidationErrorMessage(): string
     {
         return "Provided data doesn't match with the specified structure.";
     }

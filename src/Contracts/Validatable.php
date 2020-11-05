@@ -2,7 +2,7 @@
 
 namespace Influx\Sanitizer\Contracts;
 
-interface DataType
+interface Validatable
 {
     /**
      * Checks if data passes validation.
@@ -15,9 +15,9 @@ interface DataType
 
 
     /**
-     * Returns error message.
+     * Returns validation error message.
      *
      * @return string
      */
-    public function getErrorMessage(): string;
+    public function getValidationErrorMessage(): string;
 }

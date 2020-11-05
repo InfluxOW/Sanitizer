@@ -44,7 +44,7 @@ class StrTest extends TestCase
     {
         $str = (new Str([]));
 
-        $this->expectExceptionMessage($str->getErrorMessage());
+        $this->expectExceptionMessage($str->getValidationErrorMessage());
 
         $str->normalize();
     }
