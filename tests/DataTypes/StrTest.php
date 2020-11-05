@@ -9,10 +9,16 @@ use PHPUnit\Framework\TestCase;
 class StrTest extends TestCase
 {
     /** @test */
-    public function it_checks_if_provided_value_is_a_string()
+    public function string_values_passes_its_validation()
     {
         self::assertTrue((new Str('just a random string'))->validate());
+    }
+
+    /** @test */
+    public function non_string_values_dont_pass_its_validation()
+    {
         self::assertFalse((new Str([]))->validate());
+        self::assertFalse((new Str(123456))->validate());
     }
 
     /** @test */
@@ -21,7 +27,7 @@ class StrTest extends TestCase
         $normalizableValue = 123456;
         self::assertFalse((new Str($normalizableValue))->validate());
 
-        $normalizedValue = (new Str($normalizableValue))->normalize()->getValue();
+        $normalizedValue = (new Str($normalizableValue))->normalize()->getData();
         self::assertTrue((new Str($normalizedValue))->validate());
     }
 
@@ -49,6 +55,6 @@ class StrTest extends TestCase
         $value = 123456;
         $str = (new Str($value));
 
-        self::assertEquals($value, $str->getValue());
+        self::assertEquals($value, $str->getData());
     }
 }

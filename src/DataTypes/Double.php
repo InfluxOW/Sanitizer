@@ -2,21 +2,45 @@
 
 namespace Influx\Sanitizer\DataTypes;
 
-class Double implements DataType
+use Influx\Sanitizer\Contracts\DataType;
+use Influx\Sanitizer\Contracts\Normalizable;
+use Influx\Sanitizer\Exceptions\NormalizationException;
+
+class Double implements DataType, Normalizable
 {
+    protected $data;
+
+    public function __construct($data)
+    {
+        $this->data = $data;
+    }
 
     public function validate(): bool
     {
-        // TODO: Implement validate() method.
+        return is_float($this->data);
     }
 
     public function normalize(): DataType
     {
-        // TODO: Implement normalize() method.
+        if (
+            is_numeric($this->data) ||
+            (is_string($this->data) && preg_match('/^-?\d*\.?\d+$/', $this->data))
+        ) {
+            return new self(
+                (float) $this->data
+            );
+        }
+
+        throw new NormalizationException($this->getErrorMessage());
     }
 
     public function getErrorMessage(): string
     {
-        // TODO: Implement getErrorMessage() method.
+        return "Provided data is not a float and couldn't be converted to it.";
+    }
+
+    public function getData()
+    {
+        return $this->data;
     }
 }

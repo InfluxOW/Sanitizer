@@ -1,5 +1,7 @@
 <?php
 
+namespace Influx\Sanitizer;
+
 use Influx\Sanitizer\DataTypes\DataType;
 use Influx\Sanitizer\DataTypes\Double;
 use Influx\Sanitizer\DataTypes\Integer;
@@ -26,6 +28,11 @@ class Sanitizer
         $this->data = $data;
         $this->rules = $rules;
         $this->dataTypes = $this->resolveDataTypes($customDataTypes);
+    }
+
+    public function execute()
+    {
+        
     }
 
     private function resolveDataTypes($customDataTypes)

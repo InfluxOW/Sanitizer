@@ -2,39 +2,45 @@
 
 namespace Influx\Sanitizer\DataTypes;
 
-class Integer implements DataType
-{
-    protected $value;
+use Influx\Sanitizer\Contracts\DataType;
+use Influx\Sanitizer\Contracts\Normalizable;
+use Influx\Sanitizer\Exceptions\NormalizationException;
 
-    public function __construct($value)
+class Integer implements DataType, Normalizable
+{
+    protected $data;
+
+    public function __construct($data)
     {
-        $this->value = $value;
+        $this->data = $data;
     }
 
     public function validate(): bool
     {
-        return is_int($this->value);
+        return is_int($this->data);
     }
 
     public function normalize(): DataType
     {
-        if (is_numeric($this->value)) {
+        if (
+            is_numeric($this->data) ||
+            (is_string($this->data) && preg_match('/^-?\d+$/', $this->data))
+        ) {
             return new self(
-                (int) $this->value
+                (int) $this->data
             );
         }
 
-//        if (is_string($this->value) && preg_match());
-
-        throw new \NormalizationException($this->getErrorMessage());
+        throw new NormalizationException($this->getErrorMessage());
     }
 
     public function getErrorMessage(): string
     {
-        try {
-            return "Provided value '{$this->value}' is not an integer and couldn't be converted to an integer.";
-        } catch (\Exception $e) {
-            return "Provided value is not an integer and couldn't be converted to an integer.";
-        }
+        return "Provided data is not an integer and couldn't be converted to it.";
+    }
+
+    public function getData()
+    {
+        return $this->data;
     }
 }

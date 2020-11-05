@@ -3,27 +3,28 @@
 namespace Influx\Sanitizer\DataTypes;
 
 use Influx\Sanitizer\Contracts\DataType;
+use Influx\Sanitizer\Contracts\Normalizable;
 use Influx\Sanitizer\Exceptions\NormalizationException;
 
-class Str implements DataType
+class Str implements DataType, Normalizable
 {
-    protected $value;
+    protected $data;
 
-    public function __construct($value)
+    public function __construct($data)
     {
-        $this->value = $value;
+        $this->data = $data;
     }
 
     public function validate(): bool
     {
-        return is_string($this->value);
+        return is_string($this->data);
     }
 
     public function normalize(): DataType
     {
         try {
             return new self(
-                (string) $this->value
+                (string) $this->data
             );
         } catch (\Exception $e) {
             throw new NormalizationException($this->getErrorMessage());
@@ -32,11 +33,11 @@ class Str implements DataType
 
     public function getErrorMessage(): string
     {
-        return "Provided value is not a string and couldn't be converted to a string.";
+        return "Provided data is not a string and couldn't be converted to it.";
     }
 
-    public function getValue()
+    public function getData()
     {
-        return $this->value;
+        return $this->data;
     }
 }

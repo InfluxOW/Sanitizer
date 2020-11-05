@@ -11,13 +11,6 @@ interface DataType
      */
     public function validate(): bool;
 
-    /**
-     * Returns itself with normalized value.
-     *
-     * @return \Influx\Sanitizer\Contracts\DataType
-     * @throws \Influx\Sanitizer\Exceptions\NormalizationException
-     */
-    public function normalize(): DataType;
 
     /**
      * Returns error message.
@@ -27,9 +20,9 @@ interface DataType
     public function getErrorMessage(): string;
 
     /**
-     * Returns provided value.
+     * Returns provided data.
      *
      * @return mixed
      */
-    public function getValue();
+    public function getData();
 }
