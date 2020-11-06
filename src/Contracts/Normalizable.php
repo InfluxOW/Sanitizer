@@ -10,7 +10,7 @@ interface Normalizable
      * @param $data
      * @param array $options
      * @return mixed
-     * @throws \Influx\Sanitizer\Exceptions\NormalizationException
+     * @throws \Influx\Sanitizer\Exceptions\NormalizationException|\InvalidArgumentException
      */
     public function normalize($data, array $options = []);
 

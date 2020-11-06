@@ -18,7 +18,7 @@ class IntegerTest extends TestCase
     }
 
     /** @test
-     * @dataProvider data
+     * @dataProvider basicData
      * @param $data
      * @param array $alreadyValid
      */
@@ -33,7 +33,7 @@ class IntegerTest extends TestCase
 
     /**
      * @test
-     * @dataProvider data
+     * @dataProvider basicData
      * @param $data
      * @param array $alreadyValid
      * @param array $validAfterNormalization
@@ -47,13 +47,13 @@ class IntegerTest extends TestCase
 
             self::assertTrue($this->dataType->validate($normalized));
         } else {
-            self::assertTrue(true);
+            $this->markTestSkipped('This part tests in the next test.');
         }
     }
 
     /**
      * @test
-     * @dataProvider data
+     * @dataProvider basicData
      * @param $data
      * @param array $alreadyValid
      * @param array $validAfterNormalization
@@ -65,7 +65,7 @@ class IntegerTest extends TestCase
 
             $this->dataType->normalize($data);
         } else {
-            self::assertTrue(true);
+            $this->markTestSkipped('This part was tested in the previous test.');
         }
     }
 }

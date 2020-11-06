@@ -10,11 +10,12 @@ class Structure implements Validatable
 
     public function validate($data, array $options = []): bool
     {
-        $this->checkOptions($options);
+        $this->validateData($data);
+        $this->validateOptions($options);
 
         foreach ($options['structure'] as $key => $value) {
             if (is_array($value) && array_key_exists($key, $data) && is_array($data[$key])) {
-                if ((new self())->validate($data[$key], $value)) {
+                if ((new self())->validate($data[$key], ['structure' => $value])) {
                     continue;
                 }
 
@@ -36,12 +37,21 @@ class Structure implements Validatable
         return "Provided data doesn't match with the specified structure.";
     }
 
-    private function checkOptions(array $options): void
+    private function validateOptions(array $options): void
     {
         if (array_key_exists('structure', $options)) {
             return;
         }
 
         throw new \InvalidArgumentException("Please, put structure data under the 'structure' key.");
+    }
+
+    private function validateData($data): void
+    {
+        if (is_array($data)) {
+            return;
+        }
+
+        throw new \InvalidArgumentException("Unable to handle non array structures.");
     }
 }

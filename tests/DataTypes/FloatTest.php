@@ -18,7 +18,7 @@ class FloatTest extends TestCase
     }
 
     /** @test
-     * @dataProvider data
+     * @dataProvider basicData
      * @param $data
      * @param array $alreadyValid
      */
@@ -33,12 +33,12 @@ class FloatTest extends TestCase
 
     /**
      * @test
-     * @dataProvider data
+     * @dataProvider basicData
      * @param $data
      * @param array $alreadyValid
      * @param array $validAfterNormalization
      */
-    public function it_can_normalize_invalid_data_so_it_becomes_valid($data, array $alreadyValid, array $validAfterNormalization)
+    public function it_can_normalize_invalid_data_so_it_becomes_valid_otherwise_throws_error($data, array $alreadyValid, array $validAfterNormalization)
     {
         if (in_array('float', $validAfterNormalization, true)) {
             self::assertFalse($this->dataType->validate($data));
@@ -47,13 +47,13 @@ class FloatTest extends TestCase
 
             self::assertTrue($this->dataType->validate($normalized));
         } else {
-            self::assertTrue(true);
+            $this->markTestSkipped('This part tests in the next test.');
         }
     }
 
     /**
      * @test
-     * @dataProvider data
+     * @dataProvider basicData
      * @param $data
      * @param array $alreadyValid
      * @param array $validAfterNormalization
@@ -65,7 +65,7 @@ class FloatTest extends TestCase
 
             $this->dataType->normalize($data);
         } else {
-            self::assertTrue(true);
+            $this->markTestSkipped('This part was tested in the previous test.');
         }
     }
 }

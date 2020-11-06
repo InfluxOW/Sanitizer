@@ -93,7 +93,7 @@ class Sanitizer
     private function applyRule($rule, $datum)
     {
         $dataType = $this->resolver->getDataTypeInstance($rule['data_type']);
-        $options = $this->resolver->getDataTypeOptions($dataType, $rule);
+        $options = array_unset_keys($rule, ['data_type']);
 
         $validated = $dataType->validate($datum, $options);
 

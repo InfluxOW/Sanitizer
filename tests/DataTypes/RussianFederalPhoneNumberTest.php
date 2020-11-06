@@ -18,12 +18,18 @@ class RussianFederalPhoneNumberTest extends TestCase
     }
 
     /** @test
-     * @dataProvider data
+     * @dataProvider basicData
      * @param $data
      * @param array $alreadyValid
      */
     public function it_can_validate_data($data, array $alreadyValid)
     {
+        try {
+            $data = (string) $data;
+        } catch (\Exception | \Error $e) {
+            $this->markTestSkipped('It tests in the another test.');
+        }
+
         if (in_array('russian_federal_phone_number', $alreadyValid, true)) {
             self::assertTrue($this->dataType->validate($data));
         } else {
@@ -33,7 +39,7 @@ class RussianFederalPhoneNumberTest extends TestCase
 
     /**
      * @test
-     * @dataProvider data
+     * @dataProvider basicData
      * @param $data
      * @param array $alreadyValid
      * @param array $validAfterNormalization
@@ -47,13 +53,13 @@ class RussianFederalPhoneNumberTest extends TestCase
 
             self::assertTrue($this->dataType->validate($normalized));
         } else {
-            self::assertTrue(true);
+            $this->markTestSkipped('This part tests in the next test.');
         }
     }
 
     /**
      * @test
-     * @dataProvider data
+     * @dataProvider basicData
      * @param $data
      * @param array $alreadyValid
      * @param array $validAfterNormalization
@@ -65,7 +71,26 @@ class RussianFederalPhoneNumberTest extends TestCase
 
             $this->dataType->normalize($data);
         } else {
-            self::assertTrue(true);
+            $this->markTestSkipped('This part was tested in the previous test.');
         }
+    }
+
+    /**
+     * @test
+     * @dataProvider basicData
+     * @param $data
+     * @param array $alreadyValid
+     */
+    public function it_throws_an_error_when_unable_to_validate_a_value($data, array $alreadyValid)
+    {
+        try {
+            (string) $data;
+        } catch (\Exception | \Error $e) {
+            $this->expectException(\InvalidArgumentException::class);
+
+            $this->dataType->validate($data);
+        }
+
+        $this->markTestSkipped('This part was tested in the previous test.');
     }
 }

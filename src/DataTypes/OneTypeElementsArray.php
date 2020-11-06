@@ -6,6 +6,7 @@ use Influx\Sanitizer\Contracts\Validatable;
 use Influx\Sanitizer\Contracts\Normalizable;
 use Influx\Sanitizer\Exceptions\NormalizationException;
 use Influx\Sanitizer\App;
+use Influx\Sanitizer\Services\Resolver;
 use Influx\Sanitizer\Traits\HasDefaultNormalizationErrorMessage;
 use Influx\Sanitizer\Traits\HasDefaultValidationErrorMessage;
 
@@ -16,24 +17,34 @@ class OneTypeElementsArray implements Validatable, Normalizable
 
     public static $slug = 'one_type_elements_array';
     public $needsResolverInstance = true;
+    private $resolver;
+
+    public function __construct(Resolver $resolver)
+    {
+        $this->resolver = $resolver;
+    }
 
     public function validate($data, array $options = []): bool
     {
-        $this->checkOptions($options);
-        $dataType = $options['resolver']->getDataTypeInstance($options['elements_type']);
+        $this->validateData($data);
+        $this->validateOptions($options);
+
+        $dataType = $this->resolver->getDataTypeInstance($options['elements_type']);
         $options = array_unset_keys($options, ['resolver', 'elements_type']);
 
         $correctTypeData = array_filter($data, function ($value) use ($dataType, $options) {
             return $dataType->validate($value, $options);
         });
 
-        return count($correctTypeData) === count($data);
+        return $correctTypeData === $data;
     }
 
     public function normalize($data, array $options = [])
     {
-        $this->checkOptions($options);
-        $dataType = $options['resolver']->getDataTypeInstance($options['elements_type']);
+        $this->validateData($data);
+        $this->validateOptions($options);
+
+        $dataType = $this->resolver->getDataTypeInstance($options['elements_type']);
 
         if (! $dataType instanceof Normalizable) {
             throw new NormalizationException("Unable to normalize specified data type.");
@@ -50,18 +61,23 @@ class OneTypeElementsArray implements Validatable, Normalizable
         }, $data);
     }
 
-    private function checkOptions(array $options): void
+    private function validateOptions(array $options): void
     {
         if (! array_key_exists('elements_type', $options)) {
             throw new \InvalidArgumentException("Please, put array elements data type under the 'elements_type' key.");
         }
 
         if ($options['elements_type'] === static::$slug) {
-            throw new \LogicException("Unable to handle array of nested arrays.");
+            throw new \LogicException("Unable to handle array of nested one type elements arrays.");
+        }
+    }
+
+    private function validateData($data): void
+    {
+        if (is_array($data)) {
+            return;
         }
 
-        if (! array_key_exists('resolver', $options)) {
-            throw new \InvalidArgumentException("Please, put resolver instance under the 'resolver' key.");
-        }
+        throw new \InvalidArgumentException("Unable to handle non array structures.");
     }
 }

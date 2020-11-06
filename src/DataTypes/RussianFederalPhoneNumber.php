@@ -20,8 +20,8 @@ class RussianFederalPhoneNumber implements Validatable, Normalizable
     {
         try {
             return preg_match('/^7[489]\d{9}$/', $data);
-        } catch (\Exception $e) {
-            return false;
+        } catch (\Exception | \Error $e) {
+            throw new \InvalidArgumentException($e->getMessage());
         }
     }
 
@@ -33,7 +33,7 @@ class RussianFederalPhoneNumber implements Validatable, Normalizable
 
                 return preg_replace('/^8/', '7', $phoneNumber);
             }
-        } catch (\Exception $e) {
+        } catch (\Exception | \Error $e) {
             throw new NormalizationException($this->getNormalizationErrorMessage());
         }
 
