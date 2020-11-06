@@ -5,19 +5,19 @@ namespace Influx\Sanitizer\DataTypes;
 use Influx\Sanitizer\Contracts\Validatable;
 use Influx\Sanitizer\Contracts\Normalizable;
 use Influx\Sanitizer\Exceptions\NormalizationException;
+use Influx\Sanitizer\Traits\HasDefaultNormalizationErrorMessage;
+use Influx\Sanitizer\Traits\HasDefaultValidationErrorMessage;
 
 class Integer implements Validatable, Normalizable
 {
+    use HasDefaultNormalizationErrorMessage;
+    use HasDefaultValidationErrorMessage;
+
     public static $slug = 'integer';
 
     public function validate($data, array $options = []): bool
     {
         return is_int($data);
-    }
-
-    public function getValidationErrorMessage(): string
-    {
-        return "Provided data is not an integer ";
     }
 
     public function normalize($data, array $options = [])
@@ -30,10 +30,5 @@ class Integer implements Validatable, Normalizable
         }
 
         throw new NormalizationException($this->getNormalizationErrorMessage());
-    }
-
-    public function getNormalizationErrorMessage(): string
-    {
-        return "Unable to convert provided data to an integer.";
     }
 }

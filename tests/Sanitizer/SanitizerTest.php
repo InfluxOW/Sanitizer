@@ -12,7 +12,7 @@ class SanitizerTest extends TestCase
     {
         $data = json_encode(['key' => ['key_1' => ['value' => 'key'], 'key_2' => ['value' => 'key'], 'key_3' => ['value' => 'key']]], JSON_THROW_ON_ERROR);
 //        $rules = ['foo' => ['data_type' => 'integer'], 'bar' => ['data_type' => 'string'], 'baz' => ['data_type' => 'russian_federal_phone_number']];
-        $rules = ['key' => ['data_type' => 'one_type_elements_array', 'elements_type' => 'one_type_elements_array', 'structure' => ['value']]];
+        $rules = ['key' => ['data_type' => 'one_type_elements_array', 'elements_type' => 'structure', 'structure' => ['value2']]];
         $sanitizer = (new Sanitizer())->sanitize($data, $rules);
         print_r($sanitizer);
 

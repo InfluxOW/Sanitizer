@@ -6,9 +6,14 @@ use Influx\Sanitizer\Contracts\Validatable;
 use Influx\Sanitizer\Contracts\Normalizable;
 use Influx\Sanitizer\Exceptions\NormalizationException;
 use Influx\Sanitizer\App;
+use Influx\Sanitizer\Traits\HasDefaultNormalizationErrorMessage;
+use Influx\Sanitizer\Traits\HasDefaultValidationErrorMessage;
 
 class OneTypeElementsArray implements Validatable, Normalizable
 {
+    use HasDefaultNormalizationErrorMessage;
+    use HasDefaultValidationErrorMessage;
+
     public static $slug = 'one_type_elements_array';
     public $needsResolverInstance = true;
 
@@ -25,32 +30,24 @@ class OneTypeElementsArray implements Validatable, Normalizable
         return count($correctTypeData) === count($data);
     }
 
-    public function getValidationErrorMessage(): string
-    {
-        return "Provided data is not a one type elements array.";
-    }
-
     public function normalize($data, array $options = [])
     {
         $this->checkOptions($options);
         $dataType = $options['resolver']->getDataTypeInstance($options['elements_type']);
+
+        if (! $dataType instanceof Normalizable) {
+            throw new NormalizationException("Unable to normalize specified data type.");
+        }
+
         $options = array_unset_keys($options, ['resolver', 'elements_type']);
 
         return array_map(function ($value) use ($options, $dataType) {
             try {
-                if ($dataType instanceof Normalizable) {
-                    return $dataType->normalize($value, $options);
-                }
-                throw new NormalizationException($this->getNormalizationErrorMessage());
+                return $dataType->normalize($value, $options);
             } catch (NormalizationException $e) {
                 throw new NormalizationException($this->getNormalizationErrorMessage());
             }
         }, $data);
-    }
-
-    public function getNormalizationErrorMessage(): string
-    {
-        return "Unable to convert provided data to a one type elements array.";
     }
 
     private function checkOptions(array $options): void

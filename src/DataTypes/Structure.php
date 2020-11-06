@@ -42,6 +42,6 @@ class Structure implements Validatable
             return;
         }
 
-        throw new \InvalidArgumentException("Please, put structure data under the 'keys' key.");
+        throw new \InvalidArgumentException("Please, put structure data under the 'structure' key.");
     }
 }
