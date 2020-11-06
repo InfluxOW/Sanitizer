@@ -1,6 +1,6 @@
 <?php
 
-namespace Influx\Sanitizer\Services\Parsers;
+namespace Influx\Sanitizer\Services\DataParsers;
 
 class Json
 {

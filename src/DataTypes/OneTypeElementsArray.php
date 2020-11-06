@@ -8,20 +8,21 @@ use Influx\Sanitizer\Exceptions\NormalizationException;
 use Influx\Sanitizer\App;
 use Influx\Sanitizer\Sanitizer;
 use Influx\Sanitizer\Services\Resolver;
-use Influx\Sanitizer\Traits\NeedsAvailableDataTypesList;
+use Influx\Sanitizer\Traits\NeedsAnotherDataTypeInstance;
 
 class OneTypeElementsArray implements Validatable, Normalizable
 {
-    use NeedsAvailableDataTypesList;
+    use NeedsAnotherDataTypeInstance;
 
     public function validate($data, array $options = []): bool
     {
+        var_dump('sdhsdh');
+        die();
         $this->checkOptions($options);
+        $dataType = $options['needed_data_types'][$options['elements_type']];
 
-        $dt = (new Resolver($options['available_data_types']))->getDataTypeInstance($options['elements_type']);
-
-        $correctTypeData = array_filter($data, function ($value) use ($options) {
-            return Sanitizer::resolveDataTypeInstance($options)->validate();
+        $correctTypeData = array_filter($data, function ($value) use ($dataType, $options) {
+            return $dataType->validate($value, $options);
         });
 
         return count($correctTypeData) === count($data);
@@ -56,8 +57,9 @@ class OneTypeElementsArray implements Validatable, Normalizable
             throw new \InvalidArgumentException("Please, put array elements data type under the 'elements_type' key.");
         }
 
-        if (! array_key_exists('available_data_types', $options)) {
-            throw new \InvalidArgumentException("Please, put available data types data under the 'available_data_types' key.");
+        if (! array_key_exists($options['elements_type'], $options['needed_data_types']) &&
+        ! $options['needed_data_types']['elements_type']) {
+            throw new \InvalidArgumentException("Please, put data type instance of elements type under the 'available_data_types' key.");
         }
     }
 }

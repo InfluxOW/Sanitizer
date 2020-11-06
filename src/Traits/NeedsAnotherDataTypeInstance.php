@@ -2,7 +2,6 @@
 
 namespace Influx\Sanitizer\Traits;
 
-trait NeedsAvailableDataTypesList
+trait NeedsAnotherDataTypeInstance
 {
-
 }
