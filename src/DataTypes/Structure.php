@@ -36,8 +36,10 @@ class Structure implements Validatable
 
     private function checkOptions(array $options): void
     {
-        if (! array_key_exists('keys', $options)) {
-            throw new \InvalidArgumentException("Please, put structure data under the 'keys' key.");
+        if (array_key_exists('keys', $options)) {
+            return;
         }
+
+        throw new \InvalidArgumentException("Please, put structure data under the 'keys' key.");
     }
 }

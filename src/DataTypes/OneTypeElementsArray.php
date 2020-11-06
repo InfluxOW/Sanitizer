@@ -7,16 +7,18 @@ use Influx\Sanitizer\Contracts\Normalizable;
 use Influx\Sanitizer\Exceptions\NormalizationException;
 use Influx\Sanitizer\App;
 use Influx\Sanitizer\Sanitizer;
+use Influx\Sanitizer\Services\Resolver;
+use Influx\Sanitizer\Traits\NeedsAvailableDataTypesList;
 
 class OneTypeElementsArray implements Validatable, Normalizable
 {
-    public $needsAvailableDataTypesList = true;
+    use NeedsAvailableDataTypesList;
 
     public function validate($data, array $options = []): bool
     {
         $this->checkOptions($options);
 
-        $dt = Sanitizer::resolveDataTypeInstance($options);
+        $dt = (new Resolver($options['available_data_types']))->getDataTypeInstance($options['elements_type']);
 
         $correctTypeData = array_filter($data, function ($value) use ($options) {
             return Sanitizer::resolveDataTypeInstance($options)->validate();
@@ -50,8 +52,8 @@ class OneTypeElementsArray implements Validatable, Normalizable
 
     private function checkOptions(array $options): void
     {
-        if (! array_key_exists('data_type', $options)) {
-            throw new \InvalidArgumentException("Please, put array data type under the 'data_type' key.");
+        if (! array_key_exists('elements_type', $options)) {
+            throw new \InvalidArgumentException("Please, put array elements data type under the 'elements_type' key.");
         }
 
         if (! array_key_exists('available_data_types', $options)) {

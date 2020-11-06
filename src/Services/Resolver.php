@@ -3,27 +3,33 @@
 namespace Influx\Sanitizer\Services;
 
 use Influx\Sanitizer\Contracts\Validatable;
+use Influx\Sanitizer\Traits\NeedsAvailableDataTypesList;
 
 class Resolver
 {
-    public function getDataTypeInstance(string $dataType, array $availableDataTypes): Validatable
+    protected array $dataTypes;
+
+    public function __construct(array $dataTypes)
     {
-        if (! array_key_exists($dataType, $availableDataTypes)) {
-            throw new \InvalidArgumentException("Unable to find specified data type in the available data types list.");
+        $this->dataTypes = $dataTypes;
+    }
+
+    public function getDataTypeInstance(string $dataType): Validatable
+    {
+        if (array_key_exists($dataType, $this->dataTypes)) {
+            return new $this->dataTypes[$dataType]();
         }
 
-        return new $this->dataTypes[$rule['data_type']]();
+        throw new \InvalidArgumentException("Unable to find specified data type in the available data types list.");
     }
 
     public function getDataTypeOptions(Validatable $dataType, array $rule): array
     {
-        $options = array_diff_key($rule, ['data_type']);
-
-        if (isset($dataType->needsAvailableDataTypesList) && $dataType->needsAvailableDataTypesList) {
-            $options['available_data_types'] = $this->dataTypes;
+        if (class_uses_trait($dataType, NeedsAvailableDataTypesList::class)) {
+            $rule['available_data_types'] = $this->dataTypes;
         }
 
-        return $options;
+        return array_diff_key($rule, ['data_type']);
     }
 
 
