@@ -17,12 +17,14 @@ class Resolver
 
     public function getDataTypeInstance(string $dataType): Validatable
     {
-        if (isset($dataType->needsResolverInstance) && $dataType->needsResolverInstance) {
-            return new $this->dataTypes[$dataType]($this);
-        }
-
         if (array_key_exists($dataType, $this->dataTypes)) {
-            return new $this->dataTypes[$dataType]();
+            $dataTypeClass = $this->dataTypes[$dataType];
+
+            if (isset($dataTypeClass::$needsResolverInstance) && $dataTypeClass::$needsResolverInstance) {
+                return new $dataTypeClass($this);
+            }
+
+            return new $dataTypeClass();
         }
 
         throw new \InvalidArgumentException("Unable to find specified data type in the available data types list.");

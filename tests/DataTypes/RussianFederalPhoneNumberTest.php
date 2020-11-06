@@ -18,18 +18,12 @@ class RussianFederalPhoneNumberTest extends TestCase
     }
 
     /** @test
-     * @dataProvider basicData
+     * @dataProvider validationData
      * @param $data
      * @param array $alreadyValid
      */
     public function it_can_validate_data($data, array $alreadyValid)
     {
-        try {
-            $data = (string) $data;
-        } catch (\Exception | \Error $e) {
-            $this->markTestSkipped('It tests in the another test.');
-        }
-
         if (in_array('russian_federal_phone_number', $alreadyValid, true)) {
             self::assertTrue($this->dataType->validate($data));
         } else {
@@ -39,58 +33,85 @@ class RussianFederalPhoneNumberTest extends TestCase
 
     /**
      * @test
-     * @dataProvider basicData
+     * @dataProvider normalizationData
      * @param $data
-     * @param array $alreadyValid
-     * @param array $validAfterNormalization
      */
-    public function it_can_normalize_invalid_data_so_it_becomes_valid($data, array $alreadyValid, array $validAfterNormalization)
+    public function it_can_normalize_invalid_data_so_it_becomes_valid($data)
     {
-        if (in_array('russian_federal_phone_number', $validAfterNormalization, true)) {
-            self::assertFalse($this->dataType->validate($data));
+        self::assertFalse($this->dataType->validate($data));
 
-            $normalized = $this->dataType->normalize($data);
+        $normalized = $this->dataType->normalize($data);
 
-            self::assertTrue($this->dataType->validate($normalized));
-        } else {
-            $this->markTestSkipped('This part tests in the next test.');
-        }
+        self::assertTrue($this->dataType->validate($normalized));
     }
 
     /**
      * @test
-     * @dataProvider basicData
+     * @dataProvider normalizationErrorData
      * @param $data
-     * @param array $alreadyValid
-     * @param array $validAfterNormalization
      */
-    public function it_throws_an_error_when_unable_to_normalize_a_value($data, array $alreadyValid, array $validAfterNormalization)
+    public function it_throws_an_error_when_unable_to_normalize_a_value($data)
     {
-        if (! in_array('russian_federal_phone_number', array_merge($validAfterNormalization, $alreadyValid), true)) {
-            $this->expectException(NormalizationException::class);
+        $this->expectException(NormalizationException::class);
 
-            $this->dataType->normalize($data);
-        } else {
-            $this->markTestSkipped('This part was tested in the previous test.');
-        }
+        $this->dataType->normalize($data);
     }
 
     /**
      * @test
-     * @dataProvider basicData
+     * @dataProvider validationErrorData
      * @param $data
-     * @param array $alreadyValid
      */
-    public function it_throws_an_error_when_unable_to_validate_a_value($data, array $alreadyValid)
+    public function it_throws_an_error_when_unable_to_validate_a_value($data)
     {
-        try {
-            (string) $data;
-        } catch (\Exception | \Error $e) {
-            $this->expectException(\InvalidArgumentException::class);
+        $this->expectException(\InvalidArgumentException::class);
 
-            $this->dataType->validate($data);
-        }
+        $this->dataType->validate($data);
+    }
 
-        $this->markTestSkipped('This part was tested in the previous test.');
+    public function validationData()
+    {
+        return array_filter($this->basicData(), function ($datum) {
+            if (is_array($datum['data'])) {
+                return false;
+            }
+
+            try {
+                return (string) $datum['data'];
+            } catch (\Exception | \Error $e) {
+                return false;
+            }
+        });
+    }
+
+    public function validationErrorData()
+    {
+        return array_filter($this->basicData(), function ($datum) {
+            if (is_array($datum['data'])) {
+                return true;
+            }
+
+            try {
+                if ((string) $datum['data']) {
+                    return false;
+                }
+            } catch (\Exception | \Error $e) {
+                return true;
+            }
+        });
+    }
+
+    public function normalizationData()
+    {
+        return array_filter($this->basicData(), function ($datum) {
+            return in_array('russian_federal_phone_number', $datum['valid_after_normalization'], true);
+        });
+    }
+
+    public function normalizationErrorData()
+    {
+        return array_filter($this->basicData(), function ($datum) {
+            return ! in_array('russian_federal_phone_number', array_merge($datum['valid_after_normalization'], $datum['already_valid']), true);
+        });
     }
 }

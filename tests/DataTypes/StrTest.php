@@ -18,7 +18,7 @@ class StrTest extends TestCase
     }
 
     /** @test
-     * @dataProvider basicData
+     * @dataProvider validationData
      * @param $data
      * @param array $alreadyValid
      */
@@ -33,39 +33,47 @@ class StrTest extends TestCase
 
     /**
      * @test
-     * @dataProvider basicData
+     * @dataProvider normalizationData
      * @param $data
-     * @param array $alreadyValid
-     * @param array $validAfterNormalization
      */
-    public function it_can_normalize_invalid_data_so_it_becomes_valid($data, array $alreadyValid, array $validAfterNormalization)
+    public function it_can_normalize_invalid_data_so_it_becomes_valid($data)
     {
-        if (in_array('string', $validAfterNormalization, true)) {
-            self::assertFalse($this->dataType->validate($data));
+        self::assertFalse($this->dataType->validate($data));
 
-            $normalized = $this->dataType->normalize($data);
+        $normalized = $this->dataType->normalize($data);
 
-            self::assertTrue($this->dataType->validate($normalized));
-        } else {
-            $this->markTestSkipped('This part tests in the next test.');
-        }
+        self::assertTrue($this->dataType->validate($normalized));
+
     }
 
     /**
      * @test
-     * @dataProvider basicData
+     * @dataProvider normalizationErrorData
      * @param $data
-     * @param array $alreadyValid
-     * @param array $validAfterNormalization
      */
-    public function it_throws_an_error_when_unable_to_normalize_a_value($data, array $alreadyValid, array $validAfterNormalization)
+    public function it_throws_an_error_when_unable_to_normalize_a_value($data)
     {
-        if (! in_array('string', array_merge($validAfterNormalization, $alreadyValid), true)) {
-            $this->expectException(NormalizationException::class);
+        $this->expectException(NormalizationException::class);
 
-            $this->dataType->normalize($data);
-        } else {
-            $this->markTestSkipped('This part was tested in the previous test.');
-        }
+        $this->dataType->normalize($data);
+    }
+
+    public function validationData()
+    {
+        return $this->basicData();
+    }
+
+    public function normalizationData()
+    {
+        return array_filter($this->basicData(), function ($datum) {
+            return in_array('string', $datum['valid_after_normalization'], true);
+        });
+    }
+
+    public function normalizationErrorData()
+    {
+        return array_filter($this->basicData(), function ($datum) {
+            return ! in_array('string', array_merge($datum['valid_after_normalization'], $datum['already_valid']), true);
+        });
     }
 }

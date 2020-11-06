@@ -17,22 +17,84 @@ class StructureTest extends TestCase
     }
 
     /** @test
-     * @dataProvider data
-     * @param $data
-     * @param array $alreadyValid
-     * @param array $validAfterNormalization
+     * @dataProvider validationData
+     * @param array $data
      * @param array $options
+     * @param bool $expected
      */
-    public function it_can_validate_data($data, array $alreadyValid, array $validAfterNormalization, array $options = [])
+    public function it_can_validate_data(array $data, array $options, bool $expected)
     {
-        if (in_array('structure', $alreadyValid, true)) {
-            self::assertTrue($this->dataType->validate($data, $options['already_valid']));
-        } else {
-            try {
-                self::assertFalse($this->dataType->validate($data));
-            } catch (\Exception $e) {
-                $this->markTestSkipped($e->getMessage());
-            }
-        }
+        self::assertEquals($this->dataType->validate($data, $options), $expected);
+    }
+
+    /** @test
+     * @dataProvider validationData
+     * @param array $data
+     */
+    public function it_throws_error_during_validation_when_no_structure_was_provided(array $data)
+    {
+        $this->expectException(\InvalidArgumentException::class);
+
+        $this->dataType->validate($data);
+    }
+
+    /** @test
+     * @dataProvider basicNonArrayData
+     * @param $data
+     */
+    public function it_throws_error_during_validation_when_non_array_data_was_provided($data)
+    {
+        $this->expectException(\InvalidArgumentException::class);
+
+        $this->dataType->validate($data);
+    }
+
+    public function validationData()
+    {
+        return [
+            [
+                'data' => ['key_1' => ['key' => 'value'], 'key_2' => ['key' => 'value']],
+                'options' => ['structure' => ['key_1' => ['key'], 'key_2' => ['key']]],
+                'expected' => true,
+            ],
+            [
+                'data' => ['key_1' => ['key' => 'value'], 'key_2' => ['key' => 'value']],
+                'options' => ['structure' => ['*' => ['key']]],
+                'expected' => true,
+            ],
+            [
+                'data' => ['key_1' => ['key' => 'value'], 'key_2' => ['key' => 'value']],
+                'options' => ['structure' => ['*' => 'key']],
+                'expected' => false,
+            ],
+            [
+                'data' => ['key_1' => 'value', 'key_2' => 'value'],
+                'options' => ['structure' => ['*' => ['key']]],
+                'expected' => false,
+            ],
+            [
+                'data' => [
+                    'key_1' => ['*' => ['key' => 'value']],
+                    'key_2' => ['*' => ['key' => 'value']],
+                ],
+                'options' => [
+                    'structure' => [
+                        'key_1' => ['*' => ['key']],
+                        'key_2' => ['*' => ['key']],
+                    ]
+                ],
+                'expected' => true,
+            ],
+            [
+                'data' => ['key_1' => ['key' => 'value'], 'key_2' => ['key' => 'value']],
+                'options' => ['structure' => ['key_1' => ['key'], 'key_2' => ['key']]],
+                'expected' => true,
+            ],
+            [
+                'data' => ['key_1' => ['key' => 'value'], 'key_2' => ['key' => 'value']],
+                'options' => ['structure' => ['key_1', 'key_2']],
+                'expected' => true,
+            ],
+        ];
     }
 }

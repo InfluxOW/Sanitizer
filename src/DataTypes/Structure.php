@@ -14,6 +14,18 @@ class Structure implements Validatable
         $this->validateOptions($options);
 
         foreach ($options['structure'] as $key => $value) {
+            if ($key === '*' && is_array($value)) {
+                foreach ($data as $datum) {
+                    if (is_array($datum) && (new self())->validate($datum, ['structure' => $value])) {
+                        continue;
+                    }
+
+                    return false;
+                }
+
+                continue;
+            }
+
             if (is_array($value) && array_key_exists($key, $data) && is_array($data[$key])) {
                 if ((new self())->validate($data[$key], ['structure' => $value])) {
                     continue;

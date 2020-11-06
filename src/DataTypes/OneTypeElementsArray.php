@@ -16,7 +16,7 @@ class OneTypeElementsArray implements Validatable, Normalizable
     use HasDefaultValidationErrorMessage;
 
     public static $slug = 'one_type_elements_array';
-    public $needsResolverInstance = true;
+    public static $needsResolverInstance = true;
     private $resolver;
 
     public function __construct(Resolver $resolver)
@@ -68,7 +68,7 @@ class OneTypeElementsArray implements Validatable, Normalizable
         }
 
         if ($options['elements_type'] === static::$slug) {
-            throw new \LogicException("Unable to handle array of nested one type elements arrays.");
+            throw new \InvalidArgumentException("Unable to handle array of nested one type elements arrays.");
         }
     }
 

@@ -24,7 +24,7 @@ class TestCase extends \PHPUnit\Framework\TestCase
             ],
             [
                 'data' => 79242668541,
-                'already_valid' => ['russian_federal_phone_number', 'integer',],
+                'already_valid' => ['russian_federal_phone_number', 'integer'],
                 'valid_after_normalization' => ['float', 'string'],
             ],
             [
@@ -65,50 +65,10 @@ class TestCase extends \PHPUnit\Framework\TestCase
         ];
     }
 
-    public function oneTypeElementsArrayData()
+    public function basicNonArrayData()
     {
-        return [
-            [
-                'data' => ['key_1' => 123456, 'key_2' => 123456],
-                'options' => ['elements_type' => 'integer'],
-                'expected' => true,
-            ],
-            [
-                'data' => ['key_1' => ['key' => 'value'], 'key_2' => ['key' => 'value']],
-                'options' => ['elements_type' => 'structure', 'structure' => ['key']],
-                'expected' => true,
-            ],
-            [
-                'data' => ['key_1' => 123456, 'key_2' => 123456],
-                'options' => ['elements_type' => 'string'],
-                'expected' => false,
-            ],
-            [
-                'data' => ['key_1' => ['key' => 'value'], 'key_2' => ['key' => 'value']],
-                'options' => ['elements_type' => 'structure', 'structure' => ['key_1', 'key_2']],
-                'expected' => false,
-            ],
-        ];
-    }
-
-    public function structureData()
-    {
-        return [
-            [
-                'data' => ['key_1' => 123456, 'key_2' => 123456],
-                'already_valid' => ['one_type_elements_array', 'structure'],
-                'valid_after_normalization' => ['one_type_elements_array'],
-                'options' => [
-                    'already_valid' => ['elements_type' => 'integer', 'structure' => ['key_1', 'key_2']],
-                    'valid_after_normalization' => ['elements_type' => 'string'],
-                ],
-            ],
-            [
-                'data' => ['key_1' => ['key' => 'value'], 'key_2' => ['key' => 'value']],
-                'already_valid' => ['structure'],
-                'valid_after_normalization' => [],
-                'options' => ['already_valid' => ['structure' => ['key_1' => ['key'], 'key_2' => ['key']]]],
-            ],
-        ];
+        return array_filter($this->basicData(), function ($datum) {
+            return ! is_array($datum['data']);
+        });
     }
 }
