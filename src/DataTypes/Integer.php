@@ -8,6 +8,8 @@ use Influx\Sanitizer\Exceptions\NormalizationException;
 
 class Integer implements Validatable, Normalizable
 {
+    public static $slug = 'integer';
+
     public function validate($data, array $options = []): bool
     {
         return is_int($data);

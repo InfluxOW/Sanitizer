@@ -8,6 +8,8 @@ use Influx\Sanitizer\Exceptions\NormalizationException;
 
 class Double implements Validatable, Normalizable
 {
+    public static $slug = 'float';
+
     public function validate($data, array $options = []): bool
     {
         return is_float($data);
@@ -15,7 +17,7 @@ class Double implements Validatable, Normalizable
 
     public function getValidationErrorMessage(): string
     {
-        return "Provided data is not a float.";
+        return "Provided data is not a {$this->slug}.";
     }
 
     public function normalize($data, array $options = [])

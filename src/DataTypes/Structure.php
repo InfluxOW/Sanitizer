@@ -6,11 +6,13 @@ use Influx\Sanitizer\Contracts\Validatable;
 
 class Structure implements Validatable
 {
+    public static $slug = 'structure';
+
     public function validate($data, array $options = []): bool
     {
         $this->checkOptions($options);
 
-        foreach ($options['keys'] as $key => $value) {
+        foreach ($options['structure'] as $key => $value) {
             if (is_array($value) && array_key_exists($key, $data) && is_array($data[$key])) {
                 if ((new self())->validate($data[$key], $value)) {
                     continue;
@@ -36,7 +38,7 @@ class Structure implements Validatable
 
     private function checkOptions(array $options): void
     {
-        if (array_key_exists('keys', $options)) {
+        if (array_key_exists('structure', $options)) {
             return;
         }
 

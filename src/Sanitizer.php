@@ -60,9 +60,7 @@ class Sanitizer
                 try {
                     $result[$parameter] = $this->applyRule($rule, $data[$parameter]);
                 } catch (NormalizationException | ValidationException $e) {
-                    $errors[$parameter] = ['data' => $data[$parameter], 'message' => $e->getMessage()];
-                } catch (\Exception $e) {
-                    $errors[$parameter] = ['message' => $e->getMessage()];
+                    $errors[$parameter] = ['message' => $e->getMessage(), 'data' => $data[$parameter], 'rule' => $rule];
                 }
 
                 continue;

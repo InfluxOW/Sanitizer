@@ -8,6 +8,8 @@ use Influx\Sanitizer\Exceptions\NormalizationException;
 
 class RussianFederalPhoneNumber implements Validatable, Normalizable
 {
+    public static $slug = 'russian_federal_phone_number';
+
     public function validate($data, array $options = []): bool
     {
         return preg_match('/^7[489]\d{9}$/', $data);

@@ -6,20 +6,17 @@ use Influx\Sanitizer\Contracts\Validatable;
 use Influx\Sanitizer\Contracts\Normalizable;
 use Influx\Sanitizer\Exceptions\NormalizationException;
 use Influx\Sanitizer\App;
-use Influx\Sanitizer\Sanitizer;
-use Influx\Sanitizer\Services\Resolver;
-use Influx\Sanitizer\Traits\NeedsAnotherDataTypeInstance;
 
 class OneTypeElementsArray implements Validatable, Normalizable
 {
-    use NeedsAnotherDataTypeInstance;
+    public static $slug = 'one_type_elements_array';
+    public $needsResolverInstance = true;
 
     public function validate($data, array $options = []): bool
     {
-        var_dump('sdhsdh');
-        die();
         $this->checkOptions($options);
-        $dataType = $options['needed_data_types'][$options['elements_type']];
+        $dataType = $options['resolver']->getDataTypeInstance($options['elements_type']);
+        $options = array_unset_keys($options, ['resolver', 'elements_type']);
 
         $correctTypeData = array_filter($data, function ($value) use ($dataType, $options) {
             return $dataType->validate($value, $options);
@@ -36,10 +33,15 @@ class OneTypeElementsArray implements Validatable, Normalizable
     public function normalize($data, array $options = [])
     {
         $this->checkOptions($options);
+        $dataType = $options['resolver']->getDataTypeInstance($options['elements_type']);
+        $options = array_unset_keys($options, ['resolver', 'elements_type']);
 
-        return array_map(function ($value) use ($options) {
+        return array_map(function ($value) use ($options, $dataType) {
             try {
-                return App::resolveDataTypeInstance($options)->normalize();
+                if ($dataType instanceof Normalizable) {
+                    return $dataType->normalize($value, $options);
+                }
+                throw new NormalizationException($this->getNormalizationErrorMessage());
             } catch (NormalizationException $e) {
                 throw new NormalizationException($this->getNormalizationErrorMessage());
             }
@@ -57,9 +59,12 @@ class OneTypeElementsArray implements Validatable, Normalizable
             throw new \InvalidArgumentException("Please, put array elements data type under the 'elements_type' key.");
         }
 
-        if (! array_key_exists($options['elements_type'], $options['needed_data_types']) &&
-        ! $options['needed_data_types']['elements_type']) {
-            throw new \InvalidArgumentException("Please, put data type instance of elements type under the 'available_data_types' key.");
+        if ($options['elements_type'] === static::$slug) {
+            throw new \LogicException("Unable to handle array of nested arrays.");
+        }
+
+        if (! array_key_exists('resolver', $options)) {
+            throw new \InvalidArgumentException("Please, put resolver instance under the 'resolver' key.");
         }
     }
 }

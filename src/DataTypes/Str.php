@@ -8,6 +8,8 @@ use Influx\Sanitizer\Exceptions\NormalizationException;
 
 class Str implements Validatable, Normalizable
 {
+    public static $slug = 'string';
+
     public function validate($data, array $options = []): bool
     {
         return is_string($data);

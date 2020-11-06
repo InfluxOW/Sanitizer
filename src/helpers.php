@@ -1,6 +1,6 @@
 <?php
 
-function class_uses_trait(string $class, string $trait): bool
+function array_unset_keys(array $array, array $keys)
 {
-    return array_key_exists($trait, (new \ReflectionClass($class))->getTraits());
+    return array_diff_key($array, array_combine($keys, $keys));
 }

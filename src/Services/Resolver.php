@@ -3,7 +3,6 @@
 namespace Influx\Sanitizer\Services;
 
 use Influx\Sanitizer\Contracts\Validatable;
-use Influx\Sanitizer\Traits\NeedsAnotherDataTypeInstance;
 
 class Resolver
 {
@@ -27,21 +26,11 @@ class Resolver
 
     public function getDataTypeOptions(Validatable $dataType, array $rule): array
     {
-        if (array_key_exists('elements_type', $rule) && ! array_key_exists('needed_data_types', $rule)) {
-            $rule['needed_data_types'][] = $rule['elements_type'];
+        if (isset($dataType->needsResolverInstance) && $dataType->needsResolverInstance) {
+            $rule['resolver'] = $this;
         }
 
-        if (class_uses_trait(get_class($dataType), NeedsAnotherDataTypeInstance::class)) {
-            if (array_key_exists('needed_data_types', $rule)) {
-                foreach ($rule['needed_data_types'] as $neededDataType) {
-                    $rule['needed_data_types'][$neededDataType] = $this->getDataTypeInstance($neededDataType);
-                }
-            }
-
-            throw new \InvalidArgumentException("If your data type needs another data types instances, please, put their names under 'needed_data_types' key.");
-        }
-
-        return array_diff_key($rule, ['data_type']);
+        return array_unset_keys($rule, ['data_type']);
     }
 
     public function getParserInstance(string $dataFormat)
