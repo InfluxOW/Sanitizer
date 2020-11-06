@@ -9,6 +9,7 @@ interface Validatable
      *
      * @param $data
      * @param array $options
+     * @throws \InvalidArgumentException
      * @return bool
      */
     public function validate($data, array $options = []): bool;

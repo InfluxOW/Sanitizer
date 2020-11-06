@@ -10,8 +10,12 @@ use Influx\Sanitizer\Sanitizer;
 
 class OneTypeElementsArray implements Validatable, Normalizable
 {
+    public $needsAvailableDataTypesList = true;
+
     public function validate($data, array $options = []): bool
     {
+        $this->checkOptions($options);
+
         $dt = Sanitizer::resolveDataTypeInstance($options);
 
         $correctTypeData = array_filter($data, function ($value) use ($options) {
@@ -28,6 +32,8 @@ class OneTypeElementsArray implements Validatable, Normalizable
 
     public function normalize($data, array $options = [])
     {
+        $this->checkOptions($options);
+
         return array_map(function ($value) use ($options) {
             try {
                 return App::resolveDataTypeInstance($options)->normalize();
@@ -40,5 +46,16 @@ class OneTypeElementsArray implements Validatable, Normalizable
     public function getNormalizationErrorMessage(): string
     {
         return "Unable to convert provided data to a one type elements array.";
+    }
+
+    private function checkOptions(array $options): void
+    {
+        if (! array_key_exists('data_type', $options)) {
+            throw new \InvalidArgumentException("Please, put array data type under the 'data_type' key.");
+        }
+
+        if (! array_key_exists('available_data_types', $options)) {
+            throw new \InvalidArgumentException("Please, put available data types data under the 'available_data_types' key.");
+        }
     }
 }

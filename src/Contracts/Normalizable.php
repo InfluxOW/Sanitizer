@@ -5,7 +5,7 @@ namespace Influx\Sanitizer\Contracts;
 interface Normalizable
 {
     /**
-     * Returns normalized data that passes validation.
+     * Returns normalized data that passes its DataType validation.
      *
      * @param $data
      * @param array $options

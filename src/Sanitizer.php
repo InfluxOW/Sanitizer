@@ -13,6 +13,7 @@ use Influx\Sanitizer\DataTypes\Str;
 use Influx\Sanitizer\DataTypes\Structure;
 use Influx\Sanitizer\Exceptions\NormalizationException;
 use Influx\Sanitizer\Exceptions\ValidationException;
+use Influx\Sanitizer\Services\Parsers\Json;
 
 class Sanitizer
 {
@@ -26,80 +27,98 @@ class Sanitizer
         'one_type_elements_array' => OneTypeElementsArray::class,
         'structure' => Structure::class,
     ];
+    protected array $parsers = [
+      'json' => Json::class,
+    ];
 
-    public function __construct(string $data, array $rules, array $customDataTypes = [])
+    public function __construct($data, array $rules, string $dataFormat = 'json')
     {
-        $this->data = json_decode($data, true, 512, JSON_THROW_ON_ERROR);
-        $this->rules = $rules;
-        $this->dataTypes = $this->mergeDataTypes($customDataTypes);
+        $this->data = ['original' => $data, 'format' => $dataFormat];
+        $this->rules = $this->parseRules($rules);
     }
 
-    public function execute(): array
+    public function sanitize(): array
     {
         $result = [];
         $errors = [];
 
-        foreach ($this->data as $key => $value) {
+        $data = $this->parseOriginalData();
+
+        foreach ($data as $key => $datum) {
             if (array_key_exists($key, $this->rules)) {
                 try {
-                    $result[$key] = $this->applyRule($this->rules[$key], $value);
+                    $result[$key] = $this->applyRule($this->rules[$key], $datum);
                 } catch (NormalizationException | ValidationException $e) {
-                    $errors[$key] = ['data' => $value, 'message' => $e->getMessage()];
+                    $errors[$key] = ['data' => $datum, 'message' => $e->getMessage()];
                 } catch (\Exception $e) {
                     $errors[$key] = ['message' => $e->getMessage()];
                 }
 
                 continue;
             }
-
-            $result[$key] = $value;
         }
 
         return empty($errors) ? $result : $errors;
     }
 
-    private function applyRule($rule, $value)
+    private function applyRule($rule, $datum)
     {
-        $rule['available_data_types'] = $this->dataTypes;
-        $dt = static::resolveDataTypeInstance($rule, $this->dataTypes);
+        $dataType = $this->resolveDataTypeInstance($rule);
+        $options = $this->resolveDataTypeOptions($dataType, $rule);
 
-        $options = array_diff_key($rule, ['data_type']);
-        $validated = $dt->validate($value, $options);
+        $validated = $dataType->validate($datum, $options);
 
         if ($validated) {
-            return $value;
+            return $datum;
         }
 
-        if ($dt instanceof Normalizable) {
-            return $dt->normalize($value, $options);
+        if ($dataType instanceof Normalizable) {
+            return $dataType->normalize($datum, $options);
         }
 
-        throw new ValidationException($dt->getValidationErrorMessage());
+        throw new ValidationException($dataType->getValidationErrorMessage());
     }
 
-    public static function resolveDataTypeInstance($rule)
+    private function parseRules(array $rules): array
     {
-        if (! array_key_exists('data_type', $rule)) {
-            throw new \InvalidArgumentException("Please, put data type under the 'data_type' key.");
+        foreach ($rules as $rule) {
+            if (! array_key_exists('data_type', $rule)) {
+                throw new \InvalidArgumentException("Please, put data type under the 'data_type' key.");
+            }
         }
 
-        if (! array_key_exists($rule['data_type'], $rule['available_data_types'])) {
-            throw new \InvalidArgumentException("Unable to find specified data type in the available data types list.");
-        }
-
-        return new $rule['available_data_types'][$rule['data_type']]();
+        return $rules;
     }
 
-    private function mergeDataTypes($customDataTypes)
+    private function parseOriginalData(): array
+    {
+        $originalData = $this->data['original'];
+        $dataFormat = $this->data['format'];
+
+        if (is_array($originalData)) {
+            return $originalData;
+        }
+
+        if (array_key_exists($dataFormat, $this->parsers)) {
+            return new $this->parsers[$dataFormat]($originalData);
+        }
+
+        throw new \InvalidArgumentException('Unable to parse provided data.');
+    }
+
+    public function addCustomDataTypes(array $customDataTypes): void
     {
         foreach ($customDataTypes as $dataType) {
-            if ($dataType instanceof Validatable) {
-                continue;
+            if (! $dataType instanceof Validatable) {
+                throw new InvalidArgumentException("Custom data type '{$dataType}' is not resolving Validatable contract. Please, fix it.");
             }
-
-            throw new InvalidArgumentException("{$dataType} is not resolving Validatable contract. Please, fix it.");
         }
 
-        return array_merge($this->dataTypes, $customDataTypes);
+        $this->dataTypes = array_merge($this->dataTypes, $customDataTypes);
+    }
+
+    public function addCustomParsers(array $parsers): void
+    {
+        $this->parsers = array_merge($this->parsers, $parsers);
     }
 }
