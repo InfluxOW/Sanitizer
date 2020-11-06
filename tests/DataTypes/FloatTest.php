@@ -2,11 +2,11 @@
 
 namespace Influx\Sanitizer\Tests\DataTypes;
 
-use Influx\Sanitizer\DataTypes\Str;
+use Influx\Sanitizer\DataTypes\Double;
 use Influx\Sanitizer\Exceptions\NormalizationException;
 use PHPUnit\Framework\TestCase;
 
-class StrTest extends TestCase
+class FloatTest extends TestCase
 {
     protected $dataType;
 
@@ -14,26 +14,26 @@ class StrTest extends TestCase
     {
         parent::setUp();
 
-        $this->dataType = new Str();
+        $this->dataType = new Double();
     }
 
     /** @test */
-    public function string_values_passes_its_validation()
+    public function float_values_passes_its_validation()
     {
-        self::assertTrue($this->dataType->validate('just a random string'));
+        self::assertTrue($this->dataType->validate(123.05));
     }
 
     /** @test */
-    public function non_string_values_dont_pass_its_validation()
+    public function non_float_values_dont_pass_its_validation()
     {
-        self::assertFalse($this->dataType->validate([]));
-        self::assertFalse($this->dataType->validate(123456));
+        self::assertFalse($this->dataType->validate(123));
+        self::assertFalse($this->dataType->validate('test'));
     }
 
     /** @test */
-    public function it_can_normalize_non_string_value_so_it_becomes_a_string()
+    public function it_can_normalize_non_float_value_so_it_becomes_an_float()
     {
-        $normalizableValue = 123456;
+        $normalizableValue = '123456.00';
         self::assertFalse($this->dataType->validate($normalizableValue));
 
         $normalizedValue = $this->dataType->normalize($normalizableValue);
@@ -45,7 +45,7 @@ class StrTest extends TestCase
     {
         $this->expectException(NormalizationException::class);
 
-        $this->dataType->normalize([]);
+        $this->dataType->normalize('123test');
     }
 
     /** @test */

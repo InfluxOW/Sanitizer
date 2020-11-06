@@ -10,11 +10,10 @@ use Influx\Sanitizer\Sanitizer;
 
 class OneTypeElementsArray implements Validatable, Normalizable
 {
-    public $needsAvailableDataTypesList = true;
-
     public function validate($data, array $options = []): bool
     {
         $dt = Sanitizer::resolveDataTypeInstance($options);
+
         $correctTypeData = array_filter($data, function ($value) use ($options) {
             return Sanitizer::resolveDataTypeInstance($options)->validate();
         });

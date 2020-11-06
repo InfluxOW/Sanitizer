@@ -43,8 +43,10 @@ class Sanitizer
             if (array_key_exists($key, $this->rules)) {
                 try {
                     $result[$key] = $this->applyRule($this->rules[$key], $value);
+                } catch (NormalizationException | ValidationException $e) {
+                    $errors[$key] = ['data' => $value, 'message' => $e->getMessage()];
                 } catch (\Exception $e) {
-                    $errors[$key] = $e->getMessage();
+                    $errors[$key] = ['message' => $e->getMessage()];
                 }
 
                 continue;
@@ -53,41 +55,39 @@ class Sanitizer
             $result[$key] = $value;
         }
 
-        return empty($errors) ? $errors : $result;
+        return empty($errors) ? $result : $errors;
     }
 
     private function applyRule($rule, $value)
     {
+        $rule['available_data_types'] = $this->dataTypes;
         $dt = static::resolveDataTypeInstance($rule, $this->dataTypes);
 
-        if ($dt->needsAvailableDataTypesList) {
-            $rule['available_data_types'] = $this->dataTypes;
-        }
-
-        $validated = $dt->validate($value, array_diff_key($rule, ['name']));
+        $options = array_diff_key($rule, ['data_type']);
+        $validated = $dt->validate($value, $options);
 
         if ($validated) {
             return $value;
         }
 
         if ($dt instanceof Normalizable) {
-            return $dt->normalize($value, array_diff_key($rule, ['name']));
+            return $dt->normalize($value, $options);
         }
 
         throw new ValidationException($dt->getValidationErrorMessage());
     }
 
-    public static function resolveDataTypeInstance($rule, $availableDataTypes)
+    public static function resolveDataTypeInstance($rule)
     {
-        if (! array_key_exists('name', $rule)) {
-            throw new \InvalidArgumentException("Please, put data type name under the 'name' key.");
+        if (! array_key_exists('data_type', $rule)) {
+            throw new \InvalidArgumentException("Please, put data type under the 'data_type' key.");
         }
 
-        if (! array_key_exists($rule['name'], $availableDataTypes)) {
-            throw new \InvalidArgumentException("Unable to find specified data type name in the available data types list.");
+        if (! array_key_exists($rule['data_type'], $rule['available_data_types'])) {
+            throw new \InvalidArgumentException("Unable to find specified data type in the available data types list.");
         }
 
-        return new $availableDataTypes[$rule['name']]();
+        return new $rule['available_data_types'][$rule['data_type']]();
     }
 
     private function mergeDataTypes($customDataTypes)
