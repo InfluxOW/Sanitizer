@@ -4,7 +4,7 @@ namespace Influx\Sanitizer\Tests\DataTypes;
 
 use Influx\Sanitizer\DataTypes\Integer;
 use Influx\Sanitizer\Exceptions\NormalizationException;
-use PHPUnit\Framework\TestCase;
+use Influx\Sanitizer\Tests\TestCase;
 
 class IntegerTest extends TestCase
 {
@@ -17,42 +17,55 @@ class IntegerTest extends TestCase
         $this->dataType = new Integer();
     }
 
-    /** @test */
-    public function integer_values_passes_its_validation()
+    /** @test
+     * @dataProvider data
+     * @param $data
+     * @param array $alreadyValid
+     */
+    public function it_can_validate_data($data, array $alreadyValid)
     {
-        self::assertTrue($this->dataType->validate(123));
+        if (in_array('integer', $alreadyValid, true)) {
+            self::assertTrue($this->dataType->validate($data));
+        } else {
+            self::assertFalse($this->dataType->validate($data));
+        }
     }
 
-    /** @test */
-    public function non_integer_values_dont_pass_its_validation()
+    /**
+     * @test
+     * @dataProvider data
+     * @param $data
+     * @param array $alreadyValid
+     * @param array $validAfterNormalization
+     */
+    public function it_can_normalize_invalid_data_so_it_becomes_valid($data, array $alreadyValid, array $validAfterNormalization)
     {
-        self::assertFalse($this->dataType->validate([]));
-        self::assertFalse($this->dataType->validate('test'));
+        if (in_array('integer', $validAfterNormalization, true)) {
+            self::assertFalse($this->dataType->validate($data));
+
+            $normalized = $this->dataType->normalize($data);
+
+            self::assertTrue($this->dataType->validate($normalized));
+        } else {
+            self::assertTrue(true);
+        }
     }
 
-    /** @test */
-    public function it_can_normalize_non_integer_value_so_it_becomes_an_integer()
+    /**
+     * @test
+     * @dataProvider data
+     * @param $data
+     * @param array $alreadyValid
+     * @param array $validAfterNormalization
+     */
+    public function it_throws_an_error_when_unable_to_normalize_a_value($data, array $alreadyValid, array $validAfterNormalization)
     {
-        $normalizableValue = '123456';
-        self::assertFalse($this->dataType->validate($normalizableValue));
+        if (! in_array('integer', array_merge($validAfterNormalization, $alreadyValid), true)) {
+            $this->expectException(NormalizationException::class);
 
-        $normalizedValue = $this->dataType->normalize($normalizableValue);
-        self::assertTrue($this->dataType->validate($normalizedValue));
-    }
-
-    /** @test */
-    public function it_throws_an_error_when_unable_to_normalize_a_non_string_value()
-    {
-        $this->expectException(NormalizationException::class);
-
-        $this->dataType->normalize('123test');
-    }
-
-    /** @test */
-    public function it_knows_its_normalization_error_message()
-    {
-        $this->expectExceptionMessage($this->dataType->getNormalizationErrorMessage());
-
-        $this->dataType->normalize([]);
+            $this->dataType->normalize($data);
+        } else {
+            self::assertTrue(true);
+        }
     }
 }

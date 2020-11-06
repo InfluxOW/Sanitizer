@@ -24,7 +24,7 @@ class Str implements Validatable, Normalizable
     {
         try {
             return (string) $data;
-        } catch (\Exception $e) {
+        } catch (\Exception | \Error $e) {
             throw new NormalizationException($this->getNormalizationErrorMessage());
         }
     }

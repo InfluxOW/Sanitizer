@@ -1,6 +1,6 @@
 <?php
 
-namespace Influx\Sanitizer\Tests\Sanitizer;
+namespace Influx\Sanitizer\Tests;
 
 use Influx\Sanitizer\Sanitizer;
 use PHPUnit\Framework\TestCase;

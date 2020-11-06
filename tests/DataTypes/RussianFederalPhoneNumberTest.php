@@ -3,15 +3,69 @@
 namespace Influx\Sanitizer\Tests\DataTypes;
 
 use Influx\Sanitizer\DataTypes\RussianFederalPhoneNumber;
-use PHPUnit\Framework\TestCase;
+use Influx\Sanitizer\Exceptions\NormalizationException;
+use Influx\Sanitizer\Tests\TestCase;
 
 class RussianFederalPhoneNumberTest extends TestCase
 {
-    /** @test */
-    public function it_()
+    protected $dataType;
+
+    protected function setUp(): void
     {
-        $number = '8 (950) 288-56-235';
-        $dt = new RussianFederalPhoneNumber($number);
-        print_r($dt->normalize()->getData());
+        parent::setUp();
+
+        $this->dataType = new RussianFederalPhoneNumber();
+    }
+
+    /** @test
+     * @dataProvider data
+     * @param $data
+     * @param array $alreadyValid
+     */
+    public function it_can_validate_data($data, array $alreadyValid)
+    {
+        if (in_array('russian_federal_phone_number', $alreadyValid, true)) {
+            self::assertTrue($this->dataType->validate($data));
+        } else {
+            self::assertFalse($this->dataType->validate($data));
+        }
+    }
+
+    /**
+     * @test
+     * @dataProvider data
+     * @param $data
+     * @param array $alreadyValid
+     * @param array $validAfterNormalization
+     */
+    public function it_can_normalize_invalid_data_so_it_becomes_valid($data, array $alreadyValid, array $validAfterNormalization)
+    {
+        if (in_array('russian_federal_phone_number', $validAfterNormalization, true)) {
+            self::assertFalse($this->dataType->validate($data));
+
+            $normalized = $this->dataType->normalize($data);
+
+            self::assertTrue($this->dataType->validate($normalized));
+        } else {
+            self::assertTrue(true);
+        }
+    }
+
+    /**
+     * @test
+     * @dataProvider data
+     * @param $data
+     * @param array $alreadyValid
+     * @param array $validAfterNormalization
+     */
+    public function it_throws_an_error_when_unable_to_normalize_a_value($data, array $alreadyValid, array $validAfterNormalization)
+    {
+        if (! in_array('russian_federal_phone_number', array_merge($validAfterNormalization, $alreadyValid), true)) {
+            $this->expectException(NormalizationException::class);
+
+            $this->dataType->normalize($data);
+        } else {
+            self::assertTrue(true);
+        }
     }
 }
