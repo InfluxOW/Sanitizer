@@ -29,5 +29,6 @@
             "Influx\\Sanitizer\\Tests\\": "tests/"
         }
     },
-    "license": "MIT"
+    "license": "MIT",
+    "minimum-stability": "dev"
 }
