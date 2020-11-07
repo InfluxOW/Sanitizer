@@ -16,7 +16,6 @@ class OneTypeElementsArray implements Validatable, Normalizable
     use HasDefaultValidationErrorMessage;
 
     public static $slug = 'one_type_elements_array';
-    public static $needsResolverInstance = true;
     private $resolver;
 
     public function __construct(Resolver $resolver)
@@ -26,8 +25,8 @@ class OneTypeElementsArray implements Validatable, Normalizable
 
     public function validate($data, array $options = []): bool
     {
-        $this->validateData($data);
-        $this->validateOptions($options);
+        $this->verifyData($data);
+        $this->verifyOptions($options);
 
         $dataType = $this->resolver->getDataTypeInstance($options['elements_type']);
         $options = array_unset_keys($options, ['resolver', 'elements_type']);
@@ -41,8 +40,8 @@ class OneTypeElementsArray implements Validatable, Normalizable
 
     public function normalize($data, array $options = [])
     {
-        $this->validateData($data);
-        $this->validateOptions($options);
+        $this->verifyData($data);
+        $this->verifyOptions($options);
 
         $dataType = $this->resolver->getDataTypeInstance($options['elements_type']);
 
@@ -61,7 +60,7 @@ class OneTypeElementsArray implements Validatable, Normalizable
         }, $data);
     }
 
-    private function validateOptions(array $options): void
+    private function verifyOptions(array $options): void
     {
         if (! array_key_exists('elements_type', $options)) {
             throw new \InvalidArgumentException("Please, put array elements data type under the 'elements_type' key.");
@@ -72,7 +71,7 @@ class OneTypeElementsArray implements Validatable, Normalizable
         }
     }
 
-    private function validateData($data): void
+    private function verifyData($data): void
     {
         if (is_array($data)) {
             return;

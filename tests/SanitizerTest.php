@@ -3,7 +3,7 @@
 namespace Influx\Sanitizer\Tests;
 
 use Influx\Sanitizer\Sanitizer;
-use Influx\Sanitizer\Services\DataParsers\Json;
+use Influx\Sanitizer\Services\DataParsers\Classes\Json;
 use PHPUnit\Framework\TestCase;
 
 class SanitizerTest extends TestCase

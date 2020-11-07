@@ -3,6 +3,7 @@
 namespace Influx\Sanitizer\Services;
 
 use Influx\Sanitizer\Contracts\Validatable;
+use Influx\Sanitizer\DataTypes\OneTypeElementsArray;
 
 class Resolver
 {
@@ -20,7 +21,7 @@ class Resolver
         if (array_key_exists($dataType, $this->dataTypes)) {
             $dataTypeClass = $this->dataTypes[$dataType];
 
-            if (isset($dataTypeClass::$needsResolverInstance) && $dataTypeClass::$needsResolverInstance) {
+            if (check_class_constructor_needs_class($dataTypeClass, self::class)) {
                 return new $dataTypeClass($this);
             }
 

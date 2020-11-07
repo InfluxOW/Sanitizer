@@ -6,21 +6,24 @@ use Influx\Sanitizer\Contracts\Normalizable;
 use Influx\Sanitizer\Contracts\Validatable;
 use Influx\Sanitizer\Exceptions\NormalizationException;
 use Influx\Sanitizer\Exceptions\ValidationException;
+use Influx\Sanitizer\Services\DataParsers\Contracts\Invokable;
 use Influx\Sanitizer\Services\Resolver;
 
 class Sanitizer
 {
+    protected $dataTypes;
+    protected $parsers;
     protected Resolver $resolver;
 
     public function __construct(array $customDataTypes = [], array $customParsers = [])
     {
-        $this->dataTypes = $this->mergeDataTypes($customDataTypes);
-        $this->parsers = $this->mergeParsers($customParsers);
+        $this->setDataTypes($customDataTypes);
+        $this->setParsers($customParsers);
         $this->resolver = new Resolver($this->dataTypes, $this->parsers);
     }
 
     /**
-     * Returns available data types.
+     * Returns available data types slugs.
      *
      * @return array
      */
@@ -30,7 +33,7 @@ class Sanitizer
     }
 
     /**
-     * Returns available parsers.
+     * Returns available parsers slugs.
      *
      * @return array
      */
@@ -49,56 +52,57 @@ class Sanitizer
      */
     public function sanitize($input, array $rules, string $inputFormat = 'json'): array
     {
-        $data = $this->parseInput($input, $inputFormat);
-        $rules = $this->parseRules($rules);
         $result = [];
         $errors = [];
 
-        foreach ($rules as $parameter => $rule) {
-            if (array_key_exists($parameter, $data)) {
-                try {
-                    $result[$parameter] = $this->applyRule($rule, $data[$parameter]);
-                } catch (NormalizationException | ValidationException $e) {
-                    $errors[$parameter] = ['message' => $e->getMessage(), 'data' => $data[$parameter], 'rule' => $rule];
-                }
+        try {
+            $data = $this->parseInput($input, $inputFormat);
+            $this->verifyRules($rules);
+        } catch (\Exception | \Error $e) {
+            $errors['global'][] = $e->getMessage();
+        } finally {
+            if (count($errors) === 0) {
+                foreach ($rules as $parameter => $rule) {
+                    if (array_key_exists($parameter, $data)) {
+                        try {
+                            $result[$parameter] = $this->applyRule($rule, $data[$parameter]);
+                        } catch (NormalizationException | ValidationException $e) {
+                            $errors[$parameter] = ['message' => $e->getMessage(), 'data' => $data[$parameter], 'rule' => $rule];
+                        }
 
-                continue;
+                        continue;
+                    }
+
+                    throw new \InvalidArgumentException("Unable to find key '$parameter' in the provided data.");
+                }
             }
 
-            throw new \InvalidArgumentException("Unable to find key '$parameter' in the provided data.");
+            return empty($errors) ? $result : $errors;
         }
-
-        return empty($errors) ? $result : $errors;
     }
 
-    private function mergeDataTypes(array $customDataTypes): array
+    private function setDataTypes(array $customDataTypes)
     {
         $dataTypes = array_merge($this->getDefaultDataTypes(), $customDataTypes);
 
-        foreach ($dataTypes as $dataType) {
-            if (in_array(Validatable::class, class_implements($dataType), true)) {
-                continue;
-            }
-
-            throw new \InvalidArgumentException("Data type '{$dataType}' is not resolving Validatable contract. Please, fix it.");
+        if (check_array_elements_implements_interface($dataTypes, Validatable::class)) {
+            $this->dataTypes = $dataTypes;
+            return;
         }
 
-        return $dataTypes;
+        throw new \InvalidArgumentException("Some provided data types are not resolving Validatable contract. Please, fix it.");
     }
 
-    private function mergeParsers(array $customParsers): array
+    private function setParsers(array $customParsers)
     {
         $parsers = array_merge($this->getDefaultParsers(), $customParsers);
 
-        foreach ($parsers as $parser) {
-            if (method_exists($parser, '__invoke')) {
-                continue;
-            }
-
-            throw new \InvalidArgumentException("Please, use invokable parsers.");
+        if (check_array_elements_implements_interface($parsers, Invokable::class)) {
+            $this->parsers = $parsers;
+            return;
         }
 
-        return $parsers;
+        throw new \InvalidArgumentException("Please, use invokable parsers.");
     }
 
     private function applyRule($rule, $datum)
@@ -119,7 +123,7 @@ class Sanitizer
         throw new ValidationException($dataType->getValidationErrorMessage());
     }
 
-    private function parseRules(array $rules): array
+    private function verifyRules(array $rules): void
     {
         foreach ($rules as $parameter => $rule) {
             if (array_key_exists('data_type', $rule)) {
@@ -128,8 +132,6 @@ class Sanitizer
 
             throw new \InvalidArgumentException("Please, put data type under the 'data_type' key in the '$parameter' rule.");
         }
-
-        return $rules;
     }
 
     private function parseInput($data, string $dataFormat): array
@@ -145,11 +147,17 @@ class Sanitizer
 
     private function getDefaultDataTypes()
     {
-        return parse_directory_classes_in_slug_classname_manner(__DIR__ . '/DataTypes', 'Influx\\Sanitizer\\DataTypes\\');
+        return parse_directory_classes_in_slug_classname_manner(
+            __DIR__ . '/DataTypes',
+            'Influx\\Sanitizer\\DataTypes\\'
+        );
     }
 
     private function getDefaultParsers()
     {
-        return parse_directory_classes_in_slug_classname_manner(__DIR__ . '/Services/DataParsers', 'Influx\\Sanitizer\\Services\\DataParsers\\');
+        return parse_directory_classes_in_slug_classname_manner(
+            __DIR__ . '/Services/DataParsers/Classes',
+            'Influx\\Sanitizer\\Services\\DataParsers\\Classes\\'
+        );
     }
 }

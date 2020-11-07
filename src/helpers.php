@@ -1,11 +1,27 @@
 <?php
 
-function array_unset_keys(array $array, array $keys)
+use Influx\Sanitizer\Contracts\Validatable;
+use Influx\Sanitizer\DataTypes\OneTypeElementsArray;
+
+/**
+ * Returns array without specified keys.
+ *
+ * @param array $array
+ * @param array $keys
+ * @return array
+ */
+function array_unset_keys(array $array, array $keys): array
 {
     return array_diff_key($array, array_combine($keys, $keys));
 }
 
-function getReadableName(string $string)
+/**
+ * Transforms string into more readable way.
+ *
+ * @param string $string
+ * @return string
+ */
+function getReadableName(string $string): string
 {
     if (strpos($string, '_')) {
         return str_replace('_', ' ', $string);
@@ -18,14 +34,26 @@ function getReadableName(string $string)
     return trim(implode(' ', array_map('strtolower', preg_split('/(?=[A-Z])/', $string))));
 }
 
-function class_basename(string $class)
+/**
+ * Returns class basename.
+ *
+ * @param string $class
+ * @return string
+ */
+function class_basename(string $class): string
 {
     $path = explode('\\', $class);
 
     return array_pop($path);
 }
 
-function path_basename(string $path)
+/**
+ * Returns path basename.
+ *
+ * @param string $path
+ * @return string
+ */
+function path_basename(string $path): string
 {
     $pathParts = explode('/', $path);
     $fileNameWithExtension = array_pop($pathParts);
@@ -34,12 +62,30 @@ function path_basename(string $path)
     return $fileNameWithoutExtension;
 }
 
-function slugify(string $string)
+/**
+ * Returns slugified string.
+ *
+ * @param string $string
+ * @return string
+ */
+function slugify(string $string): string
 {
     return str_replace(' ', '_', getReadableName($string));
 }
 
-function parse_directory_classes_in_slug_classname_manner(string $directory, string $namespace)
+/**
+ * Parses specified directory classes and returns them with their slugs.
+ * Example:
+ * [
+ *  'class_one_slug' => ClassOne::class,
+ *  'class_two_slug' =? ClassTwo::class,
+ * ]
+ *
+ * @param string $directory
+ * @param string $namespace
+ * @return array
+ */
+function parse_directory_classes_in_slug_classname_manner(string $directory, string $namespace): array
 {
     $result = [];
     $filePaths = glob("{$directory}/*.php");
@@ -52,4 +98,45 @@ function parse_directory_classes_in_slug_classname_manner(string $directory, str
     }
 
     return $result;
+}
+
+/**
+ * Check if every array element implements specified interface.
+ *
+ * @param array $array
+ * @param string $interface
+ * @return bool
+ */
+function check_array_elements_implements_interface(array $array, string $interface): bool
+{
+    foreach ($array as $class) {
+        if (in_array($interface, class_implements($class), true)) {
+            continue;
+        }
+
+        return false;
+    }
+
+    return true;
+}
+
+/**
+ * Check if class constructor needs specified class instance.
+ *
+ * @param string $class
+ * @param string $needed
+ * @return bool
+ * @throws \ReflectionException
+ */
+function check_class_constructor_needs_class(string $class, string $needed)
+{
+    $constructorParameters = (new \ReflectionClass($class))->getConstructor()->getParameters();
+
+    foreach ($constructorParameters as $reflectionParameter) {
+        if ($reflectionParameter->getClass()->getName() === $needed) {
+            return true;
+        }
+    }
+
+    return false;
 }
