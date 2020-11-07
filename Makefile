@@ -6,3 +6,5 @@ lint:
 	composer exec phpcs -v
 lint-fix:
 	composer exec phpcbf -v
+setup:
+	composer install
