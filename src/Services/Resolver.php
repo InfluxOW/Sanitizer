@@ -3,7 +3,6 @@
 namespace Influx\Sanitizer\Services;
 
 use Influx\Sanitizer\Contracts\Validatable;
-use Influx\Sanitizer\DataTypes\OneTypeElementsArray;
 
 class Resolver
 {

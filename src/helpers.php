@@ -77,24 +77,49 @@ function slugify(string $string): string
  * Parses specified directory classes and returns them with their slugs.
  * Example:
  * [
- *  'class_one_slug' => ClassOne::class,
- *  'class_two_slug' =? ClassTwo::class,
+ *  'class_one' => ClassOne::class,
+ *  'class_two' =? ClassTwo::class,
  * ]
  *
  * @param string $directory
  * @param string $namespace
  * @return array
  */
-function parse_directory_classes_in_slug_classname_manner(string $directory, string $namespace): array
+function parse_directory_classes_to_slug_classname_way(string $directory, string $namespace): array
 {
-    $result = [];
+    $classes = [];
     $filePaths = glob("{$directory}/*.php");
 
     foreach ($filePaths as $filePath) {
         $classBasename = path_basename($filePath);
         $class = "{$namespace}{$classBasename}";
-        $slug = $class::$slug ?? slugify($classBasename);
-        $result[$slug] = $class;
+        $classes[] = $class;
+    }
+
+    return parse_classes_to_slug_classname_way($classes);
+}
+
+/**
+ * Returns provided classes with their slugs.
+ * Example:
+ * [
+ *  'class_one' => ClassOne::class,
+ *  'class_two' =? ClassTwo::class,
+ * ]
+ *
+ * @param array $classes
+ * @return array
+ */
+function parse_classes_to_slug_classname_way(array $classes): array
+{
+    $result = [];
+
+    foreach ($classes as $key => $class) {
+        if (is_int($key)) {
+            $key = $class::$slug ?? slugify($class);
+        }
+
+        $result[$key] = $class;
     }
 
     return $result;
@@ -130,11 +155,13 @@ function check_array_elements_implements_interface(array $array, string $interfa
  */
 function check_class_constructor_needs_class(string $class, string $needed)
 {
-    $constructorParameters = (new \ReflectionClass($class))->getConstructor()->getParameters();
+    $constructor = (new \ReflectionClass($class))->getConstructor();
 
-    foreach ($constructorParameters as $reflectionParameter) {
-        if ($reflectionParameter->getClass()->getName() === $needed) {
-            return true;
+    if  ($constructor) {
+        foreach ($constructor->getParameters() as $reflectionParameter) {
+            if ($reflectionParameter->getClass()->getName() === $needed) {
+                return true;
+            }
         }
     }
 
