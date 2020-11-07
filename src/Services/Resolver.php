@@ -32,7 +32,7 @@ class Resolver
 
     public function getParserInstance(string $dataFormat)
     {
-        if (array_key_exists($dataFormat, $this->parsers) && method_exists($this->parsers[$dataFormat], '__invoke')) {
+        if (array_key_exists($dataFormat, $this->parsers)) {
             return new $this->parsers[$dataFormat];
         }
 

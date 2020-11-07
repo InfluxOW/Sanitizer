@@ -4,31 +4,12 @@ namespace Influx\Sanitizer;
 
 use Influx\Sanitizer\Contracts\Normalizable;
 use Influx\Sanitizer\Contracts\Validatable;
-use Influx\Sanitizer\DataTypes\DataType;
-use Influx\Sanitizer\DataTypes\Double;
-use Influx\Sanitizer\DataTypes\Integer;
-use Influx\Sanitizer\DataTypes\OneTypeElementsArray;
-use Influx\Sanitizer\DataTypes\RussianFederalPhoneNumber;
-use Influx\Sanitizer\DataTypes\Str;
-use Influx\Sanitizer\DataTypes\Structure;
 use Influx\Sanitizer\Exceptions\NormalizationException;
 use Influx\Sanitizer\Exceptions\ValidationException;
-use Influx\Sanitizer\Services\DataParsers\Json;
 use Influx\Sanitizer\Services\Resolver;
 
 class Sanitizer
 {
-    protected array $dataTypes = [
-        'string' => Str::class,
-        'integer' => Integer::class,
-        'float' => Double::class,
-        'russian_federal_phone_number' => RussianFederalPhoneNumber::class,
-        'one_type_elements_array' => OneTypeElementsArray::class,
-        'structure' => Structure::class,
-    ];
-    protected array $parsers = [
-        'json' => Json::class,
-    ];
     protected Resolver $resolver;
 
     public function __construct(array $customDataTypes = [], array $customParsers = [])
@@ -38,16 +19,34 @@ class Sanitizer
         $this->resolver = new Resolver($this->dataTypes, $this->parsers);
     }
 
+    /**
+     * Returns available data types.
+     *
+     * @return array
+     */
     public function getAvailableDataTypes(): array
     {
         return array_keys($this->dataTypes);
     }
 
+    /**
+     * Returns available parsers.
+     *
+     * @return array
+     */
     public function getAvailableParsers(): array
     {
         return array_keys($this->parsers);
     }
 
+    /**
+     * Sanitizes input of specified format with provided rules.
+     *
+     * @param $input
+     * @param array $rules
+     * @param string $inputFormat
+     * @return array
+     */
     public function sanitize($input, array $rules, string $inputFormat = 'json'): array
     {
         $data = $this->parseInput($input, $inputFormat);
@@ -74,20 +73,32 @@ class Sanitizer
 
     private function mergeDataTypes(array $customDataTypes): array
     {
-        foreach ($customDataTypes as $dataType) {
-            if ($dataType instanceof Validatable) {
+        $dataTypes = array_merge($this->getDefaultDataTypes(), $customDataTypes);
+
+        foreach ($dataTypes as $dataType) {
+            if (in_array(Validatable::class, class_implements($dataType), true)) {
                 continue;
             }
 
-            throw new InvalidArgumentException("Custom data type '{$dataType}' is not resolving Validatable contract. Please, fix it.");
+            throw new \InvalidArgumentException("Data type '{$dataType}' is not resolving Validatable contract. Please, fix it.");
         }
 
-        return array_merge($this->dataTypes, $customDataTypes);
+        return $dataTypes;
     }
 
     private function mergeParsers(array $customParsers): array
     {
-        return array_merge($this->parsers, $customParsers);
+        $parsers = array_merge($this->getDefaultParsers(), $customParsers);
+
+        foreach ($parsers as $parser) {
+            if (method_exists($parser, '__invoke')) {
+                continue;
+            }
+
+            throw new \InvalidArgumentException("Please, use invokable parsers.");
+        }
+
+        return $parsers;
     }
 
     private function applyRule($rule, $datum)
@@ -130,5 +141,15 @@ class Sanitizer
         $parser = $this->resolver->getParserInstance($dataFormat);
 
         return $parser($data);
+    }
+
+    private function getDefaultDataTypes()
+    {
+        return parse_directory_classes_in_slug_classname_manner(__DIR__ . '/DataTypes', 'Influx\\Sanitizer\\DataTypes\\');
+    }
+
+    private function getDefaultParsers()
+    {
+        return parse_directory_classes_in_slug_classname_manner(__DIR__ . '/Services/DataParsers', 'Influx\\Sanitizer\\Services\\DataParsers\\');
     }
 }

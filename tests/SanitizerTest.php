@@ -3,18 +3,37 @@
 namespace Influx\Sanitizer\Tests;
 
 use Influx\Sanitizer\Sanitizer;
+use Influx\Sanitizer\Services\DataParsers\Json;
 use PHPUnit\Framework\TestCase;
 
 class SanitizerTest extends TestCase
 {
-    /** @test */
-    public function it_can_sanitize_data()
-    {
-        $data = json_encode(['key' => ['key_1' => ['value' => 'key'], 'key_2' => ['value' => 'key'], 'key_3' => ['value' => 'key']]], JSON_THROW_ON_ERROR);
-//        $rules = ['foo' => ['data_type' => 'integer'], 'bar' => ['data_type' => 'string'], 'baz' => ['data_type' => 'russian_federal_phone_number']];
-        $rules = ['key' => ['data_type' => 'one_type_elements_array', 'elements_type' => 'structure', 'structure' => ['value2']]];
-        $sanitizer = (new Sanitizer())->sanitize($data, $rules);
-        print_r($sanitizer);
+    protected $sanitizer;
 
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        $this->sanitizer = new Sanitizer();
+    }
+
+    /** @test */
+    public function valid_data_passes_its_sanitation()
+    {
+        ['data' => $data, 'rules' => $rules] = (new Json())(file_get_contents(__DIR__ . '/fixtures/valid_data.json'));
+
+        self::assertEquals($data, $this->sanitizer->sanitize($data, $rules));
+    }
+
+    /** @test */
+    public function invalid_data_may_be_normalized_so_it_will_pass_sanitation()
+    {
+        ['data' => $data, 'rules' => $rules] = (new Json())(file_get_contents(__DIR__ . '/fixtures/valid_after_normalization_data.json'));
+
+        self::assertNotEquals($data, $this->sanitizer->sanitize($data, $rules));
+
+        ['data' => $validData] = (new Json())(file_get_contents(__DIR__ . '/fixtures/valid_data.json'));
+
+        self::assertEquals($validData, $this->sanitizer->sanitize($data, $rules));
     }
 }

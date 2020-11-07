@@ -1,0 +1,51 @@
+{
+  "data": {
+    "integer": "123",
+    "float": 3.1415,
+    "string": 79502885623,
+    "russian_federal_phone_number": "8 (950) 288-56-23",
+    "structure": {
+      "key_1": {
+        "value": "key"
+      },
+      "key_2": {
+        "value": "key"
+      },
+      "key_3": {
+        "value": "key"
+      }
+    },
+    "one_type_elements_array": {
+      "0": 123,
+      "1": 123,
+      "2": 123
+    }
+  },
+  "rules": {
+    "integer": {
+      "data_type": "integer"
+    },
+    "float": {
+      "data_type": "float"
+    },
+    "string": {
+      "data_type": "string"
+    },
+    "russian_federal_phone_number": {
+      "data_type": "russian_federal_phone_number"
+    },
+    "structure": {
+      "data_type": "structure",
+      "structure": {
+        "*": {
+          "0": "value"
+        }
+      }
+    },
+    "one_type_elements_array": {
+      "data_type": "one_type_elements_array",
+      "elements_type": "string"
+    }
+  }
+
+}
