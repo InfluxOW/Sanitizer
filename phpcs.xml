@@ -1,0 +1,24 @@
+<?xml version="1.0"?>
+<ruleset name="Default Ruleset">
+    <description>PSR12 Laravel standards.</description>
+
+    <arg name="basepath" value="."/>
+    <arg name="colors"/>
+    <arg name="parallel" value="100"/>
+    <arg value="np"/>
+
+    <file>src</file>
+    <file>tests</file>
+
+    <rule ref="PSR12" />
+
+    <rule ref="PSR1.Methods.CamelCapsMethodName.NotCamelCaps">
+        <exclude-pattern>tests/</exclude-pattern>
+    </rule>
+    <rule ref="Generic.ControlStructures.InlineControlStructure">
+        <properties>
+            <property name="error" value="true"/>
+        </properties>
+    </rule>
+
+</ruleset>

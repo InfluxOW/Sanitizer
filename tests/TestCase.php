@@ -48,7 +48,8 @@ class TestCase extends \PHPUnit\Framework\TestCase
                 'valid_after_normalization' => [],
             ],
             [
-                'data' => function () { },
+                'data' => function () {
+                },
                 'already_valid' => [],
                 'valid_after_normalization' => [],
             ],

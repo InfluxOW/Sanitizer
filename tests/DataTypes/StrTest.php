@@ -43,7 +43,6 @@ class StrTest extends TestCase
         $normalized = $this->dataType->normalize($data);
 
         self::assertTrue($this->dataType->validate($normalized));
-
     }
 
     /**

@@ -157,7 +157,7 @@ function check_class_constructor_needs_class(string $class, string $needed)
 {
     $constructor = (new \ReflectionClass($class))->getConstructor();
 
-    if  ($constructor) {
+    if ($constructor) {
         foreach ($constructor->getParameters() as $reflectionParameter) {
             if ($reflectionParameter->getClass()->getName() === $needed) {
                 return true;

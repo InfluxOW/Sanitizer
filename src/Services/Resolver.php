@@ -33,7 +33,7 @@ class Resolver
     public function getParserInstance(string $dataFormat)
     {
         if (array_key_exists($dataFormat, $this->parsers)) {
-            return new $this->parsers[$dataFormat];
+            return new $this->parsers[$dataFormat]();
         }
 
         throw new \InvalidArgumentException("Unable to find a parser for the specified data format '$dataFormat'.");
