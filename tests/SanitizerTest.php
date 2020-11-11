@@ -40,7 +40,29 @@ class SanitizerTest extends TestCase
     /** @test */
     public function it_properly_passes_second_example_test_case()
     {
-        
+        $value = '123абв';
+        $rule = ['data_type' => Integer::$slug];
+        $data = json_encode([$value => $rule], JSON_THROW_ON_ERROR);
+
+        ['sanitation_passed' => $status, 'data' => $errors] = $this->sanitizer->sanitize($data);
+
+        self::assertFalse($status); // it means error was generated
+        self::assertArrayHasKey('message', $errors[0]);
+        self::assertEquals($errors[0]['data'], $value);
+    }
+
+    /** @test */
+    public function it_properly_passes_third_example_test_case()
+    {
+        $value = '260557';
+        $rule = ['data_type' => RussianFederalPhoneNumber::$slug];
+        $data = json_encode([$value => $rule], JSON_THROW_ON_ERROR);
+
+        ['sanitation_passed' => $status, 'data' => $errors] = $this->sanitizer->sanitize($data);
+
+        self::assertFalse($status); // it means error was generated
+        self::assertArrayHasKey('message', $errors[0]);
+        self::assertEquals($errors[0]['data'], $value);
     }
 
     /** @test */
@@ -111,7 +133,7 @@ class SanitizerTest extends TestCase
     {
         ['data' => $data] = (new Json())(file_get_contents(__DIR__ . '/Fixtures/valid_data.json'));
 
-        ['data' => $result] = $this->sanitizer->sanitize($data, []);
+        ['data' => $result] = $this->sanitizer->sanitize($data);
 
         self::assertEmpty($result);
     }

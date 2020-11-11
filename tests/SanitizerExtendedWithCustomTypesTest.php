@@ -46,8 +46,6 @@ class SanitizerExtendedWithCustomTypesTest extends TestCase
 
         $data = json_encode([$field => $value], JSON_THROW_ON_ERROR);
         ['sanitation_passed' => $status, 'data' => $result] = $this->sanitizer->sanitize($data, $rules);
-        var_dump(($result));
-        die();
     }
 
     /** @test */
