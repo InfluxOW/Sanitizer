@@ -22,7 +22,7 @@ class Str implements Validatable, HasBeforeValidationHook
         try {
             return (string) $data;
         } catch (\Exception | \Error $e) {
-            throw new \InvalidArgumentException('Unable to handle provided data.');
+            throw new \InvalidArgumentException('Unable to apply before validation action on the provided type of data.');
         }
     }
 }

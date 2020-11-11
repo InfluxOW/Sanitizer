@@ -41,15 +41,19 @@ class OneTypeElementsArray implements Validatable, HasBeforeValidationHook
 
         $dataType = $this->resolver->getDataTypeInstance($options['elements_type']);
 
-        if (! $dataType instanceof HasBeforeValidationHook) {
-            throw new \InvalidArgumentException('Unable to apply before validation action on the provided data.');
+        if ($dataType instanceof HasBeforeValidationHook) {
+            $options = array_unset_keys($options, ['resolver', 'elements_type']);
+
+            return array_map(function ($value) use ($options, $dataType) {
+                try {
+                    return $dataType->beforeValidation($value, $options);
+                } catch (\InvalidArgumentException $e) {
+                    throw new \InvalidArgumentException('Unable to apply before validation action on the provided type of data.');
+                }
+            }, $data);
         }
 
-        $options = array_unset_keys($options, ['resolver', 'elements_type']);
-
-        return array_map(function ($value) use ($options, $dataType) {
-            return $dataType->beforeValidation($value, $options);
-        }, $data);
+        throw new \InvalidArgumentException('To apply before validation action on the data within provided data type it should implement HasBeforeValidationHook interface.');
     }
 
     private function verifyData($data): void

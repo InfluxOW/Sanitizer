@@ -31,7 +31,7 @@ class StructureTest extends TestCase
      * @dataProvider validationData
      * @param array $data
      */
-    public function it_throws_error_during_validation_when_no_structure_was_provided(array $data)
+    public function it_throws_invalid_argument_exception_during_validation_when_no_structure_was_provided(array $data)
     {
         $this->expectException(\InvalidArgumentException::class);
 
@@ -42,7 +42,7 @@ class StructureTest extends TestCase
      * @dataProvider basicNonArrayData
      * @param $data
      */
-    public function it_throws_error_during_validation_when_non_array_data_was_provided($data)
+    public function it_throws_invalid_argument_exception_during_validation_when_non_array_data_was_provided($data)
     {
         $this->expectException(\InvalidArgumentException::class);
 

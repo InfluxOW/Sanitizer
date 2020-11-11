@@ -26,6 +26,6 @@ class Integer implements Validatable, HasBeforeValidationHook
             return (int) $data;
         }
 
-        throw new \InvalidArgumentException('Unable to apply before validation action on the provided data.');
+        throw new \InvalidArgumentException('Unable to apply before validation action on the provided type of data.');
     }
 }

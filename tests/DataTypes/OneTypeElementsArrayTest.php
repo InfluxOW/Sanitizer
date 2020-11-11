@@ -8,7 +8,6 @@ use Influx\Sanitizer\DataTypes\OneTypeElementsArray;
 use Influx\Sanitizer\DataTypes\RussianFederalPhoneNumber;
 use Influx\Sanitizer\DataTypes\Str;
 use Influx\Sanitizer\DataTypes\Structure;
-use Influx\Sanitizer\Exceptions\NormalizationException;
 use Influx\Sanitizer\Services\Resolver;
 use Influx\Sanitizer\Tests\TestCase;
 
@@ -21,18 +20,18 @@ class OneTypeElementsArrayTest extends TestCase
         parent::setUp();
 
         $resolver = new Resolver([
-            'string' => Str::class,
-            'integer' => Integer::class,
-            'float' => Double::class,
-            'russian_federal_phone_number' => RussianFederalPhoneNumber::class,
-            'one_type_elements_array' => OneTypeElementsArray::class,
-            'structure' => Structure::class,
+            Str::$slug => Str::class,
+            Integer::$slug => Integer::class,
+            Double::$slug => Double::class,
+            RussianFederalPhoneNumber::$slug => RussianFederalPhoneNumber::class,
+            OneTypeElementsArray::$slug => OneTypeElementsArray::class,
+            Structure::$slug => Structure::class,
         ]);
         $this->dataType = new OneTypeElementsArray($resolver);
     }
 
     /** @test
-     * @dataProvider validationData
+     * @dataProvider dataForValidationCheck
      * @param array $data
      * @param array $options
      * @param bool $expected
@@ -44,34 +43,34 @@ class OneTypeElementsArrayTest extends TestCase
 
     /**
      * @test
-     * @dataProvider normalizationData
+     * @dataProvider dataForBeforeValidationCheck
      * @param array $data
      * @param array $options
      */
-    public function it_can_normalize_invalid_data_so_it_becomes_valid(array $data, array $options)
+    public function it_can_process_before_validation_action_so_invalid_data_may_become_valid(array $data, array $options)
     {
         self::assertFalse($this->dataType->validate($data, $options));
 
-        $normalized = $this->dataType->normalize($data, $options);
+        $normalized = $this->dataType->beforeValidation($data, $options);
 
         self::assertTrue($this->dataType->validate($normalized, $options));
     }
 
     /**
      * @test
-     * @dataProvider normalizationErrorData
+     * @dataProvider dataForBeforeValidationErrorCheck
      * @param array $data
      * @param array $options
      */
-    public function it_throws_an_error_when_unable_to_normalize_a_value(array $data, array $options)
+    public function it_throws_an_invalid_argument_exception_when_unable_to_process_before_validation_action_on_provided_data(array $data, array $options)
     {
-        $this->expectException(NormalizationException::class);
+        $this->expectException(\InvalidArgumentException::class);
 
-        $this->dataType->normalize($data, $options);
+        $this->dataType->beforeValidation($data, $options);
     }
 
     /** @test */
-    public function it_throws_an_error_during_validation_when_elements_type_was_not_provided()
+    public function it_throws_an_invalid_argument_exception_during_validation_when_elements_type_was_not_provided()
     {
         $data = ['key_1' => [123456], 'key_2' => 123456];
         $options = [];
@@ -81,40 +80,40 @@ class OneTypeElementsArrayTest extends TestCase
     }
 
     /** @test */
-    public function it_throws_an_error_during_normalization_when_elements_type_was_not_provided()
+    public function it_throws_an_invalid_argument_exception_during_before_validation_action_when_elements_type_was_not_provided()
     {
         $data = ['key_1' => [123456], 'key_2' => 123456];
         $options = [];
 
         $this->expectException(\InvalidArgumentException::class);
-        $this->dataType->normalize($data, $options);
+        $this->dataType->beforeValidation($data, $options);
     }
 
     /** @test */
-    public function it_throws_an_error_during_validation_when_elements_type_is_one_type_elements_array()
+    public function it_throws_an_invalid_argument_exception_during_validation_when_elements_type_is_one_type_elements_array()
     {
         $data = ['key_1' => [123456], 'key_2' => 123456];
-        $options = ['elements_type' => 'one_type_elements_array'];
+        $options = ['elements_type' => OneTypeElementsArray::$slug];
 
         $this->expectException(\InvalidArgumentException::class);
         $this->dataType->validate($data, $options);
     }
 
     /** @test */
-    public function it_throws_an_error_during_normalization_when_elements_type_is_one_type_elements_array()
+    public function it_throws_an_invalid_argument_exception_during_normalization_when_elements_type_is_one_type_elements_array()
     {
         $data = ['key_1' => [123456], 'key_2' => 123456];
-        $options = ['elements_type' => 'one_type_elements_array'];
+        $options = ['elements_type' => OneTypeElementsArray::$slug];
 
         $this->expectException(\InvalidArgumentException::class);
-        $this->dataType->normalize($data, $options);
+        $this->dataType->beforeValidation($data, $options);
     }
 
     /** @test
      * @dataProvider basicNonArrayData
      * @param $data
      */
-    public function it_throws_an_error_when_trying_to_validate_non_array_data($data)
+    public function it_throws_an_invalid_argument_exception_when_trying_to_validate_non_array_data($data)
     {
         $this->expectException(\InvalidArgumentException::class);
 
@@ -125,63 +124,63 @@ class OneTypeElementsArrayTest extends TestCase
      * @dataProvider basicNonArrayData
      * @param $data
      */
-    public function it_throws_an_error_when_trying_to_normalize_non_array_data($data)
+    public function it_throws_an_invalid_argument_exception_when_trying_to_process_before_validation_action_on_non_array_data($data)
     {
         $this->expectException(\InvalidArgumentException::class);
 
-        $this->dataType->normalize($data);
+        $this->dataType->beforeValidation($data);
     }
 
-    public function validationData()
+    public function dataForValidationCheck()
     {
         return [
             [
                 'data' => ['key_1' => 123456, 'key_2' => 123456],
-                'options' => ['elements_type' => 'integer'],
+                'options' => ['elements_type' => Integer::$slug],
                 'expected' => true,
             ],
             [
                 'data' => ['key_1' => ['key' => 'value'], 'key_2' => ['key' => 'value']],
-                'options' => ['elements_type' => 'structure', 'structure' => ['key']],
+                'options' => ['elements_type' => Structure::$slug, 'structure' => ['key']],
                 'expected' => true,
             ],
             [
                 'data' => ['key_1' => 123456, 'key_2' => 123456],
-                'options' => ['elements_type' => 'string'],
+                'options' => ['elements_type' => Str::$slug],
                 'expected' => false,
             ],
             [
                 'data' => ['key_1' => ['key' => 'value'], 'key_2' => ['key' => 'value']],
-                'options' => ['elements_type' => 'structure', 'structure' => ['key_1', 'key_2']],
+                'options' => ['elements_type' => Structure::$slug, 'structure' => ['key_1', 'key_2']],
                 'expected' => false,
             ],
         ];
     }
 
-    public function normalizationData()
+    public function dataForBeforeValidationCheck()
     {
         return [
             [
                 'data' => ['key_1' => 123456, 'key_2' => 123456],
-                'options' => ['elements_type' => 'string'],
+                'options' => ['elements_type' => Str::$slug],
             ],
             [
                 'data' => ['key_1' => 123456, 'key_2' => 123456],
-                'options' => ['elements_type' => 'float'],
+                'options' => ['elements_type' => Double::$slug],
             ],
         ];
     }
 
-    public function normalizationErrorData()
+    public function dataForBeforeValidationErrorCheck()
     {
         return [
             [
                 'data' => ['key_1' => [123456], 'key_2' => 123456],
-                'options' => ['elements_type' => 'russian_federal_phone_number'],
+                'options' => ['elements_type' => RussianFederalPhoneNumber::$slug],
             ],
             [
                 'data' => ['key_1' => [123456], 'key_2' => [123456]],
-                'options' => ['elements_type' => 'structure'],
+                'options' => ['elements_type' => Structure::$slug],
             ],
         ];
     }

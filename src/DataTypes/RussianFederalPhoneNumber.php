@@ -17,7 +17,7 @@ class RussianFederalPhoneNumber implements Validatable, HasBeforeValidationHook
         try {
             return preg_match('/^7[489]\d{9}$/', $data);
         } catch (\Exception | \Error $e) {
-            throw new \InvalidArgumentException("Unable to handle non string values.");
+            throw new \InvalidArgumentException('Unable to validate provided type of data.');
         }
     }
 
@@ -30,9 +30,9 @@ class RussianFederalPhoneNumber implements Validatable, HasBeforeValidationHook
                 return preg_replace('/^8/', '7', $phoneNumber);
             }
         } catch (\Exception | \Error $e) {
-            throw new \InvalidArgumentException('Unable to handle provided data.');
+            throw new \InvalidArgumentException('Unable to apply before validation action on the provided type of data.');
         }
 
-        throw new \InvalidArgumentException('Unable to handle provided data.');
+        throw new \InvalidArgumentException('Unable to apply before validation action on the provided type of data.');
     }
 }

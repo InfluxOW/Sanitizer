@@ -18,13 +18,13 @@ class RussianFederalPhoneNumberTest extends TestCase
     }
 
     /** @test
-     * @dataProvider validationData
+     * @dataProvider dataForValidationCheck
      * @param $data
      * @param array $alreadyValid
      */
     public function it_can_validate_data($data, array $alreadyValid)
     {
-        if (in_array('russian_federal_phone_number', $alreadyValid, true)) {
+        if (in_array($this->dataType::$slug, $alreadyValid, true)) {
             self::assertTrue($this->dataType->validate($data));
         } else {
             self::assertFalse($this->dataType->validate($data));
@@ -33,43 +33,43 @@ class RussianFederalPhoneNumberTest extends TestCase
 
     /**
      * @test
-     * @dataProvider normalizationData
+     * @dataProvider dataForBeforeValidationCheck
      * @param $data
      */
-    public function it_can_normalize_invalid_data_so_it_becomes_valid($data)
+    public function it_can_process_before_validation_action_so_invalid_data_may_become_valid($data)
     {
         self::assertFalse($this->dataType->validate($data));
 
-        $normalized = $this->dataType->normalize($data);
+        $normalized = $this->dataType->beforeValidation($data);
 
         self::assertTrue($this->dataType->validate($normalized));
     }
 
     /**
      * @test
-     * @dataProvider normalizationErrorData
+     * @dataProvider dataForValidationErrorCheck
      * @param $data
      */
-    public function it_throws_an_error_when_unable_to_normalize_a_value($data)
-    {
-        $this->expectException(NormalizationException::class);
-
-        $this->dataType->normalize($data);
-    }
-
-    /**
-     * @test
-     * @dataProvider validationErrorData
-     * @param $data
-     */
-    public function it_throws_an_error_when_unable_to_validate_a_value($data)
+    public function it_throws_an_invalid_argument_exception_when_unable_to_validate_provided_data($data)
     {
         $this->expectException(\InvalidArgumentException::class);
 
         $this->dataType->validate($data);
     }
 
-    public function validationData()
+    /**
+     * @test
+     * @dataProvider dataForBeforeValidationErrorCheck
+     * @param $data
+     */
+    public function it_throws_an_invalid_argument_exception_when_unable_to_process_before_validation_action_on_provided_data($data)
+    {
+        $this->expectException(\InvalidArgumentException::class);
+
+        $this->dataType->beforeValidation($data);
+    }
+
+    public function dataForValidationCheck()
     {
         return array_filter($this->basicData(), function ($datum) {
             if (is_array($datum['data'])) {
@@ -84,7 +84,7 @@ class RussianFederalPhoneNumberTest extends TestCase
         });
     }
 
-    public function validationErrorData()
+    public function dataForValidationErrorCheck()
     {
         return array_filter($this->basicData(), function ($datum) {
             if (is_array($datum['data'])) {
@@ -101,14 +101,14 @@ class RussianFederalPhoneNumberTest extends TestCase
         });
     }
 
-    public function normalizationData()
+    public function dataForBeforeValidationCheck()
     {
         return array_filter($this->basicData(), function ($datum) {
             return in_array('russian_federal_phone_number', $datum['valid_after_normalization'], true);
         });
     }
 
-    public function normalizationErrorData()
+    public function dataForBeforeValidationErrorCheck()
     {
         return array_filter($this->basicData(), function ($datum) {
             return ! in_array('russian_federal_phone_number', array_merge($datum['valid_after_normalization'], $datum['already_valid']), true);
