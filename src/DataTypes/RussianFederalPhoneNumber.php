@@ -2,16 +2,12 @@
 
 namespace Influx\Sanitizer\DataTypes;
 
+use Influx\Sanitizer\Contracts\HasBeforeValidationHook;
 use Influx\Sanitizer\Contracts\Validatable;
-use Influx\Sanitizer\Contracts\Normalizable;
-use Influx\Sanitizer\Exceptions\NormalizationException;
-use Influx\Sanitizer\Exceptions\ValidationException;
-use Influx\Sanitizer\Traits\HasDefaultNormalizationErrorMessage;
 use Influx\Sanitizer\Traits\HasDefaultValidationErrorMessage;
 
-class RussianFederalPhoneNumber implements Validatable, Normalizable
+class RussianFederalPhoneNumber implements Validatable, HasBeforeValidationHook
 {
-    use HasDefaultNormalizationErrorMessage;
     use HasDefaultValidationErrorMessage;
 
     public static $slug = 'russian_federal_phone_number';
@@ -25,7 +21,7 @@ class RussianFederalPhoneNumber implements Validatable, Normalizable
         }
     }
 
-    public function normalize($data, array $options = [])
+    public function beforeValidation($data, array $options = [])
     {
         try {
             if (preg_match('/^(\+7|7|8)?[\s\-]?\(?[489]\d{2}\)?[\s\-]?\d{3}[\s\-]?\d{2}[\s\-]?\d{2}$/', $data)) {
@@ -34,9 +30,9 @@ class RussianFederalPhoneNumber implements Validatable, Normalizable
                 return preg_replace('/^8/', '7', $phoneNumber);
             }
         } catch (\Exception | \Error $e) {
-            throw new NormalizationException($this->getNormalizationErrorMessage());
+            throw new \InvalidArgumentException('Unable to handle provided data.');
         }
 
-        throw new NormalizationException($this->getNormalizationErrorMessage());
+        throw new \InvalidArgumentException('Unable to handle provided data.');
     }
 }

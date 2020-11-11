@@ -2,17 +2,13 @@
 
 namespace Influx\Sanitizer\DataTypes;
 
+use Influx\Sanitizer\Contracts\HasBeforeValidationHook;
 use Influx\Sanitizer\Contracts\Validatable;
-use Influx\Sanitizer\Contracts\Normalizable;
-use Influx\Sanitizer\Exceptions\NormalizationException;
-use Influx\Sanitizer\App;
 use Influx\Sanitizer\Services\Resolver;
-use Influx\Sanitizer\Traits\HasDefaultNormalizationErrorMessage;
 use Influx\Sanitizer\Traits\HasDefaultValidationErrorMessage;
 
-class OneTypeElementsArray implements Validatable, Normalizable
+class OneTypeElementsArray implements Validatable, HasBeforeValidationHook
 {
-    use HasDefaultNormalizationErrorMessage;
     use HasDefaultValidationErrorMessage;
 
     public static $slug = 'one_type_elements_array';
@@ -38,26 +34,31 @@ class OneTypeElementsArray implements Validatable, Normalizable
         return $correctTypeData === $data;
     }
 
-    public function normalize($data, array $options = [])
+    public function beforeValidation($data, array $options = [])
     {
         $this->verifyData($data);
         $this->verifyOptions($options);
 
         $dataType = $this->resolver->getDataTypeInstance($options['elements_type']);
 
-        if (! $dataType instanceof Normalizable) {
-            throw new NormalizationException("Unable to normalize specified data type.");
+        if (! $dataType instanceof HasBeforeValidationHook) {
+            throw new \InvalidArgumentException('Unable to apply before validation action on the provided data.');
         }
 
         $options = array_unset_keys($options, ['resolver', 'elements_type']);
 
         return array_map(function ($value) use ($options, $dataType) {
-            try {
-                return $dataType->normalize($value, $options);
-            } catch (NormalizationException $e) {
-                throw new NormalizationException($this->getNormalizationErrorMessage());
-            }
+            return $dataType->beforeValidation($value, $options);
         }, $data);
+    }
+
+    private function verifyData($data): void
+    {
+        if (is_array($data)) {
+            return;
+        }
+
+        throw new \InvalidArgumentException("Unable to handle non array structures.");
     }
 
     private function verifyOptions(array $options): void
@@ -69,14 +70,5 @@ class OneTypeElementsArray implements Validatable, Normalizable
         if ($options['elements_type'] === static::$slug) {
             throw new \InvalidArgumentException("Unable to handle array of nested one type elements arrays.");
         }
-    }
-
-    private function verifyData($data): void
-    {
-        if (is_array($data)) {
-            return;
-        }
-
-        throw new \InvalidArgumentException("Unable to handle non array structures.");
     }
 }

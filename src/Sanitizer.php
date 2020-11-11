@@ -107,7 +107,6 @@ class Sanitizer
      * @param array $rule
      * @param $data
      * @return mixed
-     * @throws \Influx\Sanitizer\Exceptions\NormalizationException
      * @throws \Influx\Sanitizer\Exceptions\ValidationException
      */
     private function applyRule(array $rule, $data)

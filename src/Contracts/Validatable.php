@@ -5,7 +5,7 @@ namespace Influx\Sanitizer\Contracts;
 interface Validatable
 {
     /**
-     * Checks if data passes validation.
+     * Check if data passes validation.
      *
      * @param $data
      * @param array $options
@@ -16,7 +16,7 @@ interface Validatable
 
 
     /**
-     * Returns validation error message.
+     * Return validation error message for the external usage.
      *
      * @return string
      */

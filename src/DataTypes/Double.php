@@ -2,15 +2,12 @@
 
 namespace Influx\Sanitizer\DataTypes;
 
+use Influx\Sanitizer\Contracts\HasBeforeValidationHook;
 use Influx\Sanitizer\Contracts\Validatable;
-use Influx\Sanitizer\Contracts\Normalizable;
-use Influx\Sanitizer\Exceptions\NormalizationException;
-use Influx\Sanitizer\Traits\HasDefaultNormalizationErrorMessage;
 use Influx\Sanitizer\Traits\HasDefaultValidationErrorMessage;
 
-class Double implements Validatable, Normalizable
+class Double implements Validatable, HasBeforeValidationHook
 {
-    use HasDefaultNormalizationErrorMessage;
     use HasDefaultValidationErrorMessage;
 
     public static $slug = 'float';
@@ -20,7 +17,7 @@ class Double implements Validatable, Normalizable
         return is_float($data);
     }
 
-    public function normalize($data, array $options = [])
+    public function beforeValidation($data, array $options = [])
     {
         if (
             is_numeric($data) ||
@@ -29,6 +26,6 @@ class Double implements Validatable, Normalizable
             return (float) $data;
         }
 
-        throw new NormalizationException($this->getNormalizationErrorMessage());
+        throw new \InvalidArgumentException('Unable to apply before validation action on the provided data.');
     }
 }
