@@ -1,0 +1,23 @@
+{
+  "initial_data": {
+    "foo": "123",
+    "bar": "asd",
+    "baz": "8 (950) 288-56-23"
+  },
+  "valid_data": {
+    "foo": 123,
+    "bar": "asd",
+    "baz": "79502885623"
+  },
+  "rules": {
+    "foo": {
+      "data_type": "integer"
+    },
+    "bar": {
+      "data_type": "string"
+    },
+    "baz": {
+      "data_type": "russian_federal_phone_number"
+    }
+  }
+}

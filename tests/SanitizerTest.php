@@ -21,6 +21,59 @@ class SanitizerTest extends TestCase
     }
 
     /** @test */
+    public function it_properly_passes_first_example_test_case()
+    {
+        [
+            'initial_data' => $initialData,
+            'valid_data' => $validData,
+            'rules' => $rules
+        ] = (new Json())(file_get_contents(__DIR__ . '/Fixtures/required_example.json'));
+
+        self::assertNotEquals($validData, $initialData);
+
+        ['sanitation_passed' => $status, 'data' => $result] = $this->sanitizer->sanitize($initialData, $rules);
+
+        self::assertTrue($status);
+        self::assertEquals($validData, $result);
+    }
+
+    /** @test */
+    public function it_properly_passes_second_example_test_case()
+    {
+        
+    }
+
+    /** @test */
+    public function it_generates_an_error_for_wrong_data_passed_in_integer_field_data_type()
+    {
+        $field = 'some_integer_field';
+        $fieldValue = '123абв';
+        $data = json_encode([$field => $fieldValue], JSON_THROW_ON_ERROR); // equals {"some_integer_field":"123абв"}
+        $rules = [$field => ['data_type' => Integer::$slug]];
+
+        ['sanitation_passed' => $status, 'data' => $errors] = $this->sanitizer->sanitize($data, $rules);
+
+        self::assertFalse($status);
+        self::assertArrayHasKey('message', $errors[$field]);
+        self::assertEquals($errors[$field]['data'], $fieldValue);
+    }
+
+    /** @test */
+    public function it_generates_an_error_for_wrong_data_passed_in_russian_federal_phone_number_field_data_type()
+    {
+        $field = 'some_russian_federal_phone_number_field';
+        $fieldValue = '260557';
+        $data = json_encode([$field => $fieldValue], JSON_THROW_ON_ERROR); // equals {"some_russian_federal_phone_number_field":"260557"}
+        $rules = [$field => ['data_type' => RussianFederalPhoneNumber::$slug]];
+
+        ['sanitation_passed' => $status, 'data' => $errors] = $this->sanitizer->sanitize($data, $rules);
+
+        self::assertFalse($status);
+        self::assertArrayHasKey('message', $errors[$field]);
+        self::assertEquals($errors[$field]['data'], $fieldValue);
+    }
+
+    /** @test */
     public function valid_data_passes_its_sanitation()
     {
         ['data' => $data, 'rules' => $rules] = (new Json())(file_get_contents(__DIR__ . '/Fixtures/valid_data.json'));
@@ -37,9 +90,10 @@ class SanitizerTest extends TestCase
 
         self::assertNotEquals($validData, $data);
 
-        ['sanitation_passed' => $status] = $this->sanitizer->sanitize($data, $rules);
+        ['sanitation_passed' => $status, 'data' => $result] = $this->sanitizer->sanitize($data, $rules);
 
         self::assertTrue($status);
+        self::assertEquals($validData, $result);
     }
 
     /** @test */
@@ -140,35 +194,5 @@ class SanitizerTest extends TestCase
         $this->expectException(\InvalidArgumentException::class);
 
         new Sanitizer([], [$parser]);
-    }
-
-    /** @test */
-    public function it_generates_an_error_for_wrong_data_passed_in_integer_field_data_type()
-    {
-        $field = 'some_integer_field';
-        $fieldValue = '123абв';
-        $data = json_encode([$field => $fieldValue], JSON_THROW_ON_ERROR); // equals {"some_integer_field":"123абв"}
-        $rules = [$field => ['data_type' => Integer::$slug]];
-
-        ['sanitation_passed' => $status, 'data' => $errors] = $this->sanitizer->sanitize($data, $rules);
-
-        self::assertFalse($status);
-        self::assertArrayHasKey('message', $errors[$field]);
-        self::assertEquals($errors[$field]['data'], $fieldValue);
-    }
-
-    /** @test */
-    public function it_generates_an_error_for_wrong_data_passed_in_russian_federal_phone_number_field_data_type()
-    {
-        $field = 'some_russian_federal_phone_number_field';
-        $fieldValue = '260557';
-        $data = json_encode([$field => $fieldValue], JSON_THROW_ON_ERROR); // equals {"some_russian_federal_phone_number_field":"260557"}
-        $rules = [$field => ['data_type' => RussianFederalPhoneNumber::$slug]];
-
-        ['sanitation_passed' => $status, 'data' => $errors] = $this->sanitizer->sanitize($data, $rules);
-
-        self::assertFalse($status);
-        self::assertArrayHasKey('message', $errors[$field]);
-        self::assertEquals($errors[$field]['data'], $fieldValue);
     }
 }

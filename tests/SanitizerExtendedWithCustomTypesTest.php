@@ -2,6 +2,7 @@
 
 namespace Influx\Sanitizer\Tests;
 
+use Influx\Sanitizer\DataTypes\OneTypeElementsArray;
 use Influx\Sanitizer\Sanitizer;
 use Influx\Sanitizer\Tests\Fixtures\Divider;
 
@@ -34,6 +35,19 @@ class SanitizerExtendedWithCustomTypesTest extends TestCase
 
         self::assertTrue($status);
         self::assertEquals($result[$field], $value / 2);
+    }
+
+    /** @test */
+    public function custom_data_type_within_sanitizer_can_properly_handle_data_within_one_type_elements_array()
+    {
+        $field = 'some_divider_field';
+        $value = [10, 6];
+        $rules = [$field => ['data_type' => OneTypeElementsArray::$slug, 'elements_type' => Divider::$slug]];
+
+        $data = json_encode([$field => $value], JSON_THROW_ON_ERROR);
+        ['sanitation_passed' => $status, 'data' => $result] = $this->sanitizer->sanitize($data, $rules);
+        var_dump(($result));
+        die();
     }
 
     /** @test */
