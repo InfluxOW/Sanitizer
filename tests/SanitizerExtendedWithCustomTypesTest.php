@@ -3,61 +3,45 @@
 namespace Influx\Sanitizer\Tests;
 
 use Influx\Sanitizer\Sanitizer;
-use Influx\Sanitizer\Tests\Fixtures\AlphaDash;
+use Influx\Sanitizer\Tests\Fixtures\Divider;
 
 class SanitizerExtendedWithCustomTypesTest extends TestCase
 {
-    protected $customDataType;
     protected $sanitizer;
 
     protected function setUp(): void
     {
         parent::setUp();
 
-        $this->sanitizer = new Sanitizer([AlphaDash::class]);
+        $this->sanitizer = new Sanitizer([Divider::class]);
     }
 
     /** @test */
     public function it_may_be_extended_with_custom_data_types()
     {
-        self::assertContains(AlphaDash::$slug, $this->sanitizer->getAvailableDataTypes());
+        self::assertContains(Divider::$slug, $this->sanitizer->getAvailableDataTypes());
     }
 
     /** @test */
-    public function custom_data_type_within_sanitizer_can_validate_data()
+    public function custom_data_type_within_sanitizer_can_properly_handle_data()
     {
-        $field = 'some_alpha_dash_field';
-        $value = 'it_should_work_fine_123-';
-        $rules = [$field => ['data_type' => AlphaDash::$slug]];
+        $field = 'some_divider_field';
+        $value = 10;
+        $rules = [$field => ['data_type' => Divider::$slug]];
 
         $data = json_encode([$field => $value], JSON_THROW_ON_ERROR);
         ['sanitation_passed' => $status, 'data' => $result] = $this->sanitizer->sanitize($data, $rules);
 
         self::assertTrue($status);
-        self::assertEquals($result[$field], $value);
-    }
-
-    /** @test */
-    public function custom_data_type_within_sanitizer_can_normalize_data()
-    {
-        $field = 'some_alpha_dash_field';
-        $value = '!@#it_should_work_fine_123-**^%%%%$';
-        $normalizedValue = 'it_should_work_fine_123-';
-        $rules = [$field => ['data_type' => AlphaDash::$slug]];
-
-        $validData = json_encode([$field => $value], JSON_THROW_ON_ERROR);
-        ['sanitation_passed' => $status, 'data' => $result] = $this->sanitizer->sanitize($validData, $rules);
-
-        self::assertTrue($status);
-        self::assertEquals($result[$field], $normalizedValue);
+        self::assertEquals($result[$field], $value / 2);
     }
 
     /** @test */
     public function custom_data_type_within_sanitizer_can_throw_an_error_if_unable_to_handle_value()
     {
-        $field = 'some_alpha_dash_field';
-        $value = ['!@#it_should_work_fine_123-**^%%%%$'];
-        $rules = [$field => ['data_type' => AlphaDash::$slug]];
+        $field = 'some_divider_field';
+        $value = [10];
+        $rules = [$field => ['data_type' => Divider::$slug]];
 
         $validData = json_encode([$field => $value], JSON_THROW_ON_ERROR);
         ['sanitation_passed' => $status, 'data' => $result] = $this->sanitizer->sanitize($validData, $rules);

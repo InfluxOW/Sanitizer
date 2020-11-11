@@ -8,28 +8,27 @@ use Influx\Sanitizer\Exceptions\NormalizationException;
 use Influx\Sanitizer\Traits\HasDefaultNormalizationErrorMessage;
 use Influx\Sanitizer\Traits\HasDefaultValidationErrorMessage;
 
-class AlphaDash implements Validatable, Normalizable
+class Divider implements Validatable, Normalizable
 {
     use HasDefaultValidationErrorMessage;
     use HasDefaultNormalizationErrorMessage;
 
-    public static $slug = 'alpha_dash';
+    public static $slug = 'divider';
 
     public function validate($data, array $options = []): bool
     {
-        try {
-            return preg_match('/^[a-zA-Z0-9-_]+$/', $data);
-        } catch (\Exception | \Error $e) {
-            throw new \InvalidArgumentException("Unable to handle non string value.");
-        }
+        return is_int($data);
     }
 
     public function normalize($data, array $options = [])
     {
-        try {
-            return preg_replace('/[^a-zA-Z0-9-_]+/', '', $data);
-        } catch (\Exception | \Error $e) {
-            throw new NormalizationException($this->getNormalizationErrorMessage());
+        if (
+            is_numeric($data) ||
+            (is_string($data) && preg_match('/^-?\d+$/', $data))
+        ) {
+            return (int) $data / 2;
         }
+
+        throw new NormalizationException($this->getNormalizationErrorMessage());
     }
 }

@@ -135,14 +135,14 @@ class Sanitizer
         $dataType = $this->resolver->getDataTypeInstance($rule['data_type']);
         $options = array_unset_keys($rule, ['data_type']);
 
+        if ($dataType instanceof Normalizable) {
+            $data =  $dataType->normalize($data, $options);
+        }
+
         $isDataValid = $dataType->validate($data, $options);
 
         if ($isDataValid) {
             return $data;
-        }
-
-        if ($dataType instanceof Normalizable) {
-            return $dataType->normalize($data, $options);
         }
 
         throw new ValidationException($dataType->getValidationErrorMessage());

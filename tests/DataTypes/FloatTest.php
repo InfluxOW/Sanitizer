@@ -36,7 +36,7 @@ class FloatTest extends TestCase
      * @dataProvider normalizationData
      * @param $data
      */
-    public function it_can_normalize_invalid_data_so_it_becomes_valid_otherwise_throws_error($data)
+    public function it_can_normalize_invalid_data_so_it_becomes_valid($data)
     {
         self::assertFalse($this->dataType->validate($data));
 
