@@ -2,6 +2,12 @@
 
 namespace Influx\Sanitizer\Tests;
 
+use Influx\Sanitizer\Contracts\Normalizable;
+use Influx\Sanitizer\Contracts\Validatable;
+use Influx\Sanitizer\Exceptions\NormalizationException;
+use Influx\Sanitizer\Traits\HasDefaultNormalizationErrorMessage;
+use Influx\Sanitizer\Traits\HasDefaultValidationErrorMessage;
+
 class TestCase extends \PHPUnit\Framework\TestCase
 {
     public function basicData()

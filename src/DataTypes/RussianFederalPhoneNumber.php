@@ -21,7 +21,7 @@ class RussianFederalPhoneNumber implements Validatable, Normalizable
         try {
             return preg_match('/^7[489]\d{9}$/', $data);
         } catch (\Exception | \Error $e) {
-            throw new \InvalidArgumentException($e->getMessage());
+            throw new \InvalidArgumentException("Unable to handle non string values.");
         }
     }
 

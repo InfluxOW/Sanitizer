@@ -2,7 +2,6 @@
 
 namespace Influx\Sanitizer\Tests;
 
-use Influx\Sanitizer\Contracts\Validatable;
 use Influx\Sanitizer\DataTypes\Integer;
 use Influx\Sanitizer\DataTypes\RussianFederalPhoneNumber;
 use Influx\Sanitizer\Sanitizer;
@@ -24,7 +23,7 @@ class SanitizerTest extends TestCase
     /** @test */
     public function valid_data_passes_its_sanitation()
     {
-        ['data' => $data, 'rules' => $rules] = (new Json())(file_get_contents(__DIR__ . '/fixtures/valid_data.json'));
+        ['data' => $data, 'rules' => $rules] = (new Json())(file_get_contents(__DIR__ . '/Fixtures/valid_data.json'));
         ['sanitation_passed' => $status] = $this->sanitizer->sanitize($data, $rules);
 
         self::assertTrue($status);
@@ -33,8 +32,8 @@ class SanitizerTest extends TestCase
     /** @test */
     public function invalid_data_may_be_normalized_so_it_will_pass_sanitation()
     {
-        ['data' => $data, 'rules' => $rules] = (new Json())(file_get_contents(__DIR__ . '/fixtures/valid_after_normalization_data.json'));
-        ['data' => $validData] = (new Json())(file_get_contents(__DIR__ . '/fixtures/valid_data.json'));
+        ['data' => $data, 'rules' => $rules] = (new Json())(file_get_contents(__DIR__ . '/Fixtures/valid_after_normalization_data.json'));
+        ['data' => $validData] = (new Json())(file_get_contents(__DIR__ . '/Fixtures/valid_data.json'));
 
         self::assertNotEquals($validData, $data);
 
@@ -46,7 +45,7 @@ class SanitizerTest extends TestCase
     /** @test */
     public function it_returns_array_of_errors_for_every_invalid_value_if_data_can_not_pass_sanitation()
     {
-        ['data' => $data, 'rules' => $rules] = (new Json())(file_get_contents(__DIR__ . '/fixtures/data_causes_errors.json'));
+        ['data' => $data, 'rules' => $rules] = (new Json())(file_get_contents(__DIR__ . '/Fixtures/data_causes_errors.json'));
         ['sanitation_passed' => $status, 'data' => $errors] = $this->sanitizer->sanitize($data, $rules);
 
         self::assertFalse($status);
@@ -56,7 +55,7 @@ class SanitizerTest extends TestCase
     /** @test */
     public function it_returns_empty_array_if_no_rules_was_provided()
     {
-        ['data' => $data] = (new Json())(file_get_contents(__DIR__ . '/fixtures/valid_data.json'));
+        ['data' => $data] = (new Json())(file_get_contents(__DIR__ . '/Fixtures/valid_data.json'));
 
         ['data' => $result] = $this->sanitizer->sanitize($data, []);
 
@@ -66,7 +65,7 @@ class SanitizerTest extends TestCase
     /** @test */
     public function it_returns_error_when_no_data_was_found_by_specified_rule_key()
     {
-        ['data' => $data] = (new Json())(file_get_contents(__DIR__ . '/fixtures/valid_data.json'));
+        ['data' => $data] = (new Json())(file_get_contents(__DIR__ . '/Fixtures/valid_data.json'));
 
         ['data' => $errors, 'sanitation_passed' => $status] = $this->sanitizer->sanitize($data, ['nonexistent_key' => ['data_type' => ['string']]]);
 
@@ -95,33 +94,12 @@ class SanitizerTest extends TestCase
     /** @test */
     public function it_returns_global_error_when_invalid_rules_was_provided()
     {
-        ['data' => $data] = (new Json())(file_get_contents(__DIR__ . '/fixtures/valid_data.json'));
+        ['data' => $data] = (new Json())(file_get_contents(__DIR__ . '/Fixtures/valid_data.json'));
 
         ['sanitation_passed' => $status, 'data' => $errors] = $this->sanitizer->sanitize($data, ['integer' => []], 'json');
 
         self::assertFalse($status);
         self::assertArrayHasKey('global', $errors);
-    }
-
-    /** @test */
-    public function it_may_be_extended_with_custom_data_types()
-    {
-        $dataType = new class implements Validatable {
-            public static $slug = 'test_data_type';
-
-            public function validate($data, array $options = []): bool
-            {
-                return true;
-            }
-
-            public function getValidationErrorMessage(): string
-            {
-                return 'Something went wrong';
-            }
-        };
-        $sanitizer = new Sanitizer([$dataType]);
-
-        self::assertContains($dataType::$slug, $sanitizer->getAvailableDataTypes());
     }
 
     /** @test */
@@ -169,7 +147,7 @@ class SanitizerTest extends TestCase
     {
         $field = 'some_integer_field';
         $fieldValue = '123test';
-        $data = [$field => $fieldValue];
+        $data = json_encode([$field => $fieldValue]);
         $rules = [$field => ['data_type' => Integer::$slug]];
 
         ['sanitation_passed' => $status, 'data' => $errors] = $this->sanitizer->sanitize($data, $rules);
@@ -184,7 +162,7 @@ class SanitizerTest extends TestCase
     {
         $field = 'some_russian_federal_phone_number_field';
         $fieldValue = '0500';
-        $data = [$field => $fieldValue];
+        $data = json_encode([$field => $fieldValue], JSON_THROW_ON_ERROR);
         $rules = [$field => ['data_type' => RussianFederalPhoneNumber::$slug]];
 
         ['sanitation_passed' => $status, 'data' => $errors] = $this->sanitizer->sanitize($data, $rules);

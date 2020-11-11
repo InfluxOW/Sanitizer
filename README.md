@@ -25,7 +25,7 @@ You can extend these lists by adding custom data types and parsers.
 ## Usage
 
     1. Instantiating sanitizer
-`$sanitizer = new Sanitizer($customDataTypes = [], $customParsers = [])`
+`$sanitizer = new Sanitizer($customDataTypes = [CustomDataType::class], $customParsers = [CustomParser::class])`
 
 *Notices*: 
 - **Custom data types must implement `Influx\Sanitizer\Contracts\Validatable` interface**

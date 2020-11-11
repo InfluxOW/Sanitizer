@@ -66,7 +66,7 @@ class Sanitizer
                     if (array_key_exists($parameter, $data)) {
                         try {
                             $result[$parameter] = $this->applyRule($rule, $data[$parameter]);
-                        } catch (NormalizationException | ValidationException $e) {
+                        } catch (NormalizationException | ValidationException | \InvalidArgumentException $e) {
                             $errors[$parameter] = ['message' => $e->getMessage(), 'data' => $data[$parameter], 'rule' => $rule];
                         }
 
