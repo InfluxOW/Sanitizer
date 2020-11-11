@@ -146,8 +146,8 @@ class SanitizerTest extends TestCase
     public function it_generates_an_error_for_wrong_data_passed_in_integer_field_data_type()
     {
         $field = 'some_integer_field';
-        $fieldValue = '123test';
-        $data = json_encode([$field => $fieldValue]);
+        $fieldValue = '123абв';
+        $data = json_encode([$field => $fieldValue], JSON_THROW_ON_ERROR); // equals {"some_integer_field":"123абв"}
         $rules = [$field => ['data_type' => Integer::$slug]];
 
         ['sanitation_passed' => $status, 'data' => $errors] = $this->sanitizer->sanitize($data, $rules);
@@ -161,8 +161,8 @@ class SanitizerTest extends TestCase
     public function it_generates_an_error_for_wrong_data_passed_in_russian_federal_phone_number_field_data_type()
     {
         $field = 'some_russian_federal_phone_number_field';
-        $fieldValue = '0500';
-        $data = json_encode([$field => $fieldValue], JSON_THROW_ON_ERROR);
+        $fieldValue = '260557';
+        $data = json_encode([$field => $fieldValue], JSON_THROW_ON_ERROR); // equals {"some_russian_federal_phone_number_field":"260557"}
         $rules = [$field => ['data_type' => RussianFederalPhoneNumber::$slug]];
 
         ['sanitation_passed' => $status, 'data' => $errors] = $this->sanitizer->sanitize($data, $rules);
