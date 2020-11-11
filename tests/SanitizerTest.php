@@ -3,6 +3,8 @@
 namespace Influx\Sanitizer\Tests;
 
 use Influx\Sanitizer\Contracts\Validatable;
+use Influx\Sanitizer\DataTypes\Integer;
+use Influx\Sanitizer\DataTypes\RussianFederalPhoneNumber;
 use Influx\Sanitizer\Sanitizer;
 use Influx\Sanitizer\Services\DataParsers\Classes\Json;
 use Influx\Sanitizer\Services\DataParsers\Contracts\Invokable;
@@ -160,5 +162,35 @@ class SanitizerTest extends TestCase
         $this->expectException(\InvalidArgumentException::class);
 
         new Sanitizer([], [$parser]);
+    }
+
+    /** @test */
+    public function it_generates_an_error_for_wrong_data_passed_in_integer_field_data_type()
+    {
+        $field = 'some_integer_field';
+        $fieldValue = '123test';
+        $data = [$field => $fieldValue];
+        $rules = [$field => ['data_type' => Integer::$slug]];
+
+        ['sanitation_passed' => $status, 'data' => $errors] = $this->sanitizer->sanitize($data, $rules);
+
+        self::assertFalse($status);
+        self::assertArrayHasKey('message', $errors[$field]);
+        self::assertEquals($errors[$field]['data'], $fieldValue);
+    }
+
+    /** @test */
+    public function it_generates_an_error_for_wrong_data_passed_in_russian_federal_phone_number_field_data_type()
+    {
+        $field = 'some_russian_federal_phone_number_field';
+        $fieldValue = '0500';
+        $data = [$field => $fieldValue];
+        $rules = [$field => ['data_type' => RussianFederalPhoneNumber::$slug]];
+
+        ['sanitation_passed' => $status, 'data' => $errors] = $this->sanitizer->sanitize($data, $rules);
+
+        self::assertFalse($status);
+        self::assertArrayHasKey('message', $errors[$field]);
+        self::assertEquals($errors[$field]['data'], $fieldValue);
     }
 }
