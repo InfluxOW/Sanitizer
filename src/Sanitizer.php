@@ -28,7 +28,7 @@ class Sanitizer
     }
 
     /**
-     * Returns available data types slugs.
+     * Return available data types slugs.
      *
      * @return array
      */
@@ -38,7 +38,7 @@ class Sanitizer
     }
 
     /**
-     * Returns available parsers slugs.
+     * Return available parsers slugs.
      *
      * @return array
      */
@@ -48,7 +48,7 @@ class Sanitizer
     }
 
     /**
-     * Sanitizes input of specified format with provided rules.
+     * Sanitize input of specified format with provided rules.
      *
      * @param $input
      * @param array $rules
@@ -58,7 +58,7 @@ class Sanitizer
     public function sanitize($input, string $inputFormat = 'json', array $rules = []): array
     {
         try {
-            $data = $this->parseInput($input, $inputFormat);
+            $data = is_array($input) ? $input : $this->parseInput($input, $inputFormat);
         } catch (\InvalidArgumentException $e) {
             return [self::GLOBAL_ERRORS_KEY => [$e->getMessage()]];
         }
@@ -81,7 +81,7 @@ class Sanitizer
     }
 
     /**
-     * Merges default data types with custom ones, verifies them and sets to instance.
+     * Merge default data types with custom ones, verifies them and sets to instance.
      *
      * @param array $customDataTypes
      */
@@ -100,7 +100,20 @@ class Sanitizer
     }
 
     /**
-     * Merges default parsers with custom ones, verifies them and sets to instance.
+     * Return default library data types.
+     *
+     * @return array
+     */
+    private function getDefaultDataTypes()
+    {
+        return parse_directory_classes_as_slug_to_classname(
+            __DIR__ . '/DataTypes/Implementations',
+            'Influx\\Sanitizer\\DataTypes\\Implementations\\'
+        );
+    }
+
+    /**
+     * Merge default parsers with custom ones, verifies them and sets to instance.
      *
      * @param array $customParsers
      */
@@ -118,81 +131,7 @@ class Sanitizer
     }
 
     /**
-     * Applies specified rule to the data.
-     *
-     * @param array $rule
-     * @param $data
-     * @return mixed
-     */
-    private function applyRule(array $rule, $data)
-    {
-        $dataType = $this->resolver->getDataTypeInstance($rule[self::RULE_KEY_WHERE_DATA_TYPE_SLUG_SHOULD_BE]);
-        $options = array_unset_keys($rule, [self::RULE_KEY_WHERE_DATA_TYPE_SLUG_SHOULD_BE]);
-
-        if ($dataType instanceof PreparesForValidation) {
-            $data = $dataType->prepareForValidation($data, $options);
-        }
-
-        $isDataValid = $dataType->validate($data, $options);
-
-        if ($isDataValid) {
-            return $dataType instanceof PreparesForTransmission ? $dataType->prepareForTransmission($data, $options) : $data;
-        }
-
-        throw new ValidationException($dataType->getValidationErrorMessage());
-    }
-
-    /**
-     * Verifies that rules has necessary keys.
-     *
-     * @param array $rules
-     */
-    private function verifyRules(array $rules): void
-    {
-        $key = self::RULE_KEY_WHERE_DATA_TYPE_SLUG_SHOULD_BE;
-
-        foreach ($rules as $parameter => $rule) {
-            if (is_array($rule) && array_key_exists($key, $rule)) {
-                continue;
-            }
-
-            throw new \InvalidArgumentException("Please, put data type under the '$key' key in the '$parameter' rule.");
-        }
-    }
-
-    /**
-     * Parses data using special data format parser.
-     *
-     * @param $data
-     * @param string $dataFormat
-     * @return array
-     */
-    private function parseInput($data, string $dataFormat): array
-    {
-        if (is_array($data)) {
-            return $data;
-        }
-
-        $parser = $this->resolver->getParserInstance($dataFormat);
-
-        return $parser($data);
-    }
-
-    /**
-     * Returns default library data types.
-     *
-     * @return array
-     */
-    private function getDefaultDataTypes()
-    {
-        return parse_directory_classes_as_slug_to_classname(
-            __DIR__ . '/DataTypes/Implementations',
-            'Influx\\Sanitizer\\DataTypes\\Implementations\\'
-        );
-    }
-
-    /**
-     * Returns default library parsers.
+     * Return default library parsers.
      *
      * @return array
      */
@@ -204,6 +143,26 @@ class Sanitizer
         );
     }
 
+    /**
+     * Parse data using special data format parser.
+     *
+     * @param $data
+     * @param string $dataFormat
+     * @return array
+     */
+    private function parseInput($data, string $dataFormat): array
+    {
+        $parser = $this->resolver->getParserInstance($dataFormat);
+
+        return $parser($data);
+    }
+
+    /**
+     * Check if data has been passed in as $value => $rule, i.e. without field names.
+     *
+     * @param array $data
+     * @return bool
+     */
     private function checkIfDataConsistsOfValueToRuleParams(array $data): bool
     {
         foreach ($data as $value => $rule) {
@@ -231,6 +190,13 @@ class Sanitizer
         return true;
     }
 
+    /**
+     * Transform $value => $rule data into two arrays:
+     * array of values and array of rules.
+     *
+     * @param array $data
+     * @return array[]
+     */
     private function transformValueToRuleDataIntoValuesAndRulesArrays(array $data)
     {
         $values = [];
@@ -244,6 +210,31 @@ class Sanitizer
         return [$values, $rules];
     }
 
+    /**
+     * Verify that rules has necessary keys.
+     *
+     * @param array $rules
+     */
+    private function verifyRules(array $rules): void
+    {
+        $key = self::RULE_KEY_WHERE_DATA_TYPE_SLUG_SHOULD_BE;
+
+        foreach ($rules as $parameter => $rule) {
+            if (is_array($rule) && array_key_exists($key, $rule)) {
+                continue;
+            }
+
+            throw new \InvalidArgumentException("Please, put data type under the '$key' key in the '$parameter' rule.");
+        }
+    }
+
+    /**
+     * Sanitize data using provided rules.
+     *
+     * @param array $data
+     * @param array $rules
+     * @return array[]
+     */
     private function sanitizeDataBySpecifiedRules(array $data, array $rules)
     {
         $sanitizedData = [];
@@ -264,5 +255,31 @@ class Sanitizer
         }
 
         return [$sanitizedData, $sanitationErrors];
+    }
+
+    /**
+     * Apply specified rule to the data.
+     *
+     * @param array $rule
+     * @param $data
+     * @return mixed
+     * @throws \Influx\Sanitizer\Exceptions\ValidationException
+     */
+    private function applyRule(array $rule, $data)
+    {
+        $dataType = $this->resolver->getDataTypeInstance($rule[self::RULE_KEY_WHERE_DATA_TYPE_SLUG_SHOULD_BE]);
+        $options = array_unset_keys($rule, [self::RULE_KEY_WHERE_DATA_TYPE_SLUG_SHOULD_BE]);
+
+        if ($dataType instanceof PreparesForValidation) {
+            $data = $dataType->prepareForValidation($data, $options);
+        }
+
+        $isDataValid = $dataType->validate($data, $options);
+
+        if ($isDataValid) {
+            return $dataType instanceof PreparesForTransmission ? $dataType->prepareForTransmission($data, $options) : $data;
+        }
+
+        throw new ValidationException($dataType->getValidationErrorMessage());
     }
 }

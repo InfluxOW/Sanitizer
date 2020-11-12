@@ -153,12 +153,15 @@ class SanitizerTest extends TestCase
         self::assertCount(1, $result[$this->sanitizer::GLOBAL_ERRORS_KEY]);
     }
 
-    /** @test */
-    public function it_returns_global_error_when_invalid_rules_was_provided()
+    /** @test
+     * @dataProvider invalidRules
+     * @param $rules
+     */
+    public function it_returns_global_error_when_invalid_rules_was_provided($rules)
     {
         ['data' => $data] = (new Json())(file_get_contents(__DIR__ . '/Fixtures/valid_data.json'));
 
-        $result = $this->sanitizer->sanitize($data, 'json', ['integer' => []]);
+        $result = $this->sanitizer->sanitize($data, 'json', $rules);
 
         self::assertArrayHasKey($this->sanitizer::GLOBAL_ERRORS_KEY, $result);
         self::assertCount(1, $result[$this->sanitizer::GLOBAL_ERRORS_KEY]);
@@ -210,5 +213,14 @@ class SanitizerTest extends TestCase
         $this->expectException(\InvalidArgumentException::class);
 
         new Sanitizer([], [$parser]);
+    }
+
+    public function invalidRules()
+    {
+        return [
+            [['integer' => []]],
+            [['integer' => ['invalid_data_type_key_name' => Integer::$slug]]],
+            [[123 => Integer::$slug]],
+        ];
     }
 }
