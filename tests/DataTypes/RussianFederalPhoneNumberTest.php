@@ -2,8 +2,7 @@
 
 namespace Influx\Sanitizer\Tests\DataTypes;
 
-use Influx\Sanitizer\DataTypes\RussianFederalPhoneNumber;
-use Influx\Sanitizer\Exceptions\NormalizationException;
+use Influx\Sanitizer\DataTypes\Implementations\RussianFederalPhoneNumber;
 use Influx\Sanitizer\Tests\TestCase;
 
 class RussianFederalPhoneNumberTest extends TestCase
@@ -104,14 +103,14 @@ class RussianFederalPhoneNumberTest extends TestCase
     public function dataForBeforeValidationCheck()
     {
         return array_filter($this->basicData(), function ($datum) {
-            return in_array('russian_federal_phone_number', $datum['valid_after_normalization'], true);
+            return in_array(RussianFederalPhoneNumber::$slug, $datum['valid_after_normalization'], true);
         });
     }
 
     public function dataForBeforeValidationErrorCheck()
     {
         return array_filter($this->basicData(), function ($datum) {
-            return ! in_array('russian_federal_phone_number', array_merge($datum['valid_after_normalization'], $datum['already_valid']), true);
+            return ! in_array(RussianFederalPhoneNumber::$slug, array_merge($datum['valid_after_normalization'], $datum['already_valid']), true);
         });
     }
 }

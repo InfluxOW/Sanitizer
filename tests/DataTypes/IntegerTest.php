@@ -2,7 +2,7 @@
 
 namespace Influx\Sanitizer\Tests\DataTypes;
 
-use Influx\Sanitizer\DataTypes\Integer;
+use Influx\Sanitizer\DataTypes\Implementations\Integer;
 use Influx\Sanitizer\Tests\TestCase;
 
 class IntegerTest extends TestCase

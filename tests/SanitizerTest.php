@@ -27,7 +27,7 @@ class SanitizerTest extends TestCase
             'initial_data' => $initialData,
             'valid_data' => $validData,
             'rules' => $rules
-        ] = (new Json())(file_get_contents(__DIR__ . '/Fixtures/required_example.json'));
+        ] = (new Json())(file_get_contents(__DIR__ . '/Fixtures/first_test_case.json'));
 
         self::assertNotEquals($validData, $initialData);
 

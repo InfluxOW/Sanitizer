@@ -2,10 +2,6 @@
 
 namespace Influx\Sanitizer;
 
-use Influx\Sanitizer\Contracts\Normalizable;
-use Influx\Sanitizer\Contracts\Validatable;
-use Influx\Sanitizer\Exceptions\NormalizationException;
-use Influx\Sanitizer\Exceptions\ValidationException;
 use Influx\Sanitizer\Services\DataParsers\Contracts\Invokable;
 use Influx\Sanitizer\Services\Resolver;
 

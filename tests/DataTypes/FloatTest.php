@@ -2,7 +2,7 @@
 
 namespace Influx\Sanitizer\Tests\DataTypes;
 
-use Influx\Sanitizer\DataTypes\Double;
+use Influx\Sanitizer\DataTypes\Implementations\Double;
 use Influx\Sanitizer\Tests\TestCase;
 
 class FloatTest extends TestCase

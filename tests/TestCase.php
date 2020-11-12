@@ -2,12 +2,10 @@
 
 namespace Influx\Sanitizer\Tests;
 
-use Influx\Sanitizer\Contracts\Normalizable;
-use Influx\Sanitizer\DataTypes\Double;
-use Influx\Sanitizer\DataTypes\Integer;
-use Influx\Sanitizer\DataTypes\RussianFederalPhoneNumber;
-use Influx\Sanitizer\DataTypes\Str;
-use Influx\Sanitizer\Traits\HasDefaultNormalizationErrorMessage;
+use Influx\Sanitizer\DataTypes\Implementations\Double;
+use Influx\Sanitizer\DataTypes\Implementations\Integer;
+use Influx\Sanitizer\DataTypes\Implementations\RussianFederalPhoneNumber;
+use Influx\Sanitizer\DataTypes\Implementations\Str;
 
 class TestCase extends \PHPUnit\Framework\TestCase
 {

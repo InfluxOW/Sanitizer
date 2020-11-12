@@ -1,16 +1,16 @@
 <?php
 
-namespace Influx\Sanitizer\Tests\Fixtures;
+namespace Influx\Sanitizer\DataTypes\Implementations;
 
 use Influx\Sanitizer\DataTypes\DataType;
 
-class Divider extends DataType
+class Integer extends DataType
 {
-    public static $slug = 'divider';
+    public static $slug = 'integer';
 
     public function validate($data, array $options = []): bool
     {
-        return is_int($data) && $data % 2 === 0;
+        return is_int($data);
     }
 
     public function beforeValidation($data, array $options = [])
@@ -24,10 +24,4 @@ class Divider extends DataType
 
         throw new \InvalidArgumentException('Unable to convert provided type of data to integer.');
     }
-
-    public function afterValidation($data, array $options = [])
-    {
-        return $data / 2;
-    }
-
 }

@@ -2,7 +2,7 @@
 
 namespace Influx\Sanitizer\Services;
 
-use Influx\Sanitizer\Contracts\Validatable;
+use Influx\Sanitizer\DataTypes\DataType;
 
 class Resolver
 {
@@ -15,7 +15,7 @@ class Resolver
         $this->parsers = $parsers;
     }
 
-    public function getDataTypeInstance(string $dataType): Validatable
+    public function getDataTypeInstance(string $dataType): DataType
     {
         if (array_key_exists($dataType, $this->dataTypes)) {
             $dataTypeClass = $this->dataTypes[$dataType];

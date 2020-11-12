@@ -2,12 +2,12 @@
 
 namespace Influx\Sanitizer\Tests\DataTypes;
 
-use Influx\Sanitizer\DataTypes\Double;
-use Influx\Sanitizer\DataTypes\Integer;
-use Influx\Sanitizer\DataTypes\OneTypeElementsArray;
-use Influx\Sanitizer\DataTypes\RussianFederalPhoneNumber;
-use Influx\Sanitizer\DataTypes\Str;
-use Influx\Sanitizer\DataTypes\Structure;
+use Influx\Sanitizer\DataTypes\Implementations\Double;
+use Influx\Sanitizer\DataTypes\Implementations\Integer;
+use Influx\Sanitizer\DataTypes\Implementations\OneTypeElementsArray;
+use Influx\Sanitizer\DataTypes\Implementations\RussianFederalPhoneNumber;
+use Influx\Sanitizer\DataTypes\Implementations\Str;
+use Influx\Sanitizer\DataTypes\Implementations\Structure;
 use Influx\Sanitizer\Services\Resolver;
 use Influx\Sanitizer\Tests\TestCase;
 
@@ -175,12 +175,12 @@ class OneTypeElementsArrayTest extends TestCase
     {
         return [
             [
-                'data' => ['key_1' => [123456], 'key_2' => 123456],
+                'data' => ['key_1' => [123456], 'key_2' => [123456]],
                 'options' => ['elements_type' => RussianFederalPhoneNumber::$slug],
             ],
             [
-                'data' => ['key_1' => [123456], 'key_2' => [123456]],
-                'options' => ['elements_type' => Structure::$slug],
+                'data' => ['key_1' => '123test', 'key_2' => [123456]],
+                'options' => ['elements_type' => Integer::$slug],
             ],
         ];
     }

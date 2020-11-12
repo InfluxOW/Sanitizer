@@ -2,7 +2,7 @@
 
 namespace Influx\Sanitizer\Tests\DataTypes;
 
-use Influx\Sanitizer\DataTypes\Structure;
+use Influx\Sanitizer\DataTypes\Implementations\Structure;
 use Influx\Sanitizer\Tests\TestCase;
 
 class StructureTest extends TestCase

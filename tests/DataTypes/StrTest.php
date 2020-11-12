@@ -2,7 +2,7 @@
 
 namespace Influx\Sanitizer\Tests\DataTypes;
 
-use Influx\Sanitizer\DataTypes\Str;
+use Influx\Sanitizer\DataTypes\Implementations\Str;
 use Influx\Sanitizer\Exceptions\NormalizationException;
 use Influx\Sanitizer\Tests\TestCase;
 
@@ -24,7 +24,7 @@ class StrTest extends TestCase
      */
     public function it_can_validate_data($data, array $alreadyValid)
     {
-        if (in_array('string', $alreadyValid, true)) {
+        if (in_array($this->dataType::$slug, $alreadyValid, true)) {
             self::assertTrue($this->dataType->validate($data));
         } else {
             self::assertFalse($this->dataType->validate($data));

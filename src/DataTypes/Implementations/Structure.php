@@ -1,17 +1,16 @@
 <?php
 
-namespace Influx\Sanitizer\DataTypes;
+namespace Influx\Sanitizer\DataTypes\Implementations;
 
-use Influx\Sanitizer\Contracts\Validatable;
+use Influx\Sanitizer\DataTypes\DataType;
 
-class Structure implements Validatable
+class Structure extends DataType
 {
     public static $slug = 'structure';
 
     public function validate($data, array $options = []): bool
     {
-        $this->validateData($data);
-        $this->validateOptions($options);
+        $this->validateInput($data, $options);
 
         foreach ($options['structure'] as $key => $value) {
             if ($key === '*' && is_array($value)) {
@@ -49,21 +48,15 @@ class Structure implements Validatable
         return "Provided data doesn't match with the specified structure.";
     }
 
-    private function validateOptions(array $options): void
+    private function validateInput($data, array $options): void
     {
-        if (array_key_exists('structure', $options)) {
-            return;
+        if (! is_array($data)) {
+            throw new \InvalidArgumentException("Unable to handle non array structures.");
         }
 
-        throw new \InvalidArgumentException("Please, put structure data under the 'structure' key.");
-    }
 
-    private function validateData($data): void
-    {
-        if (is_array($data)) {
-            return;
+        if (! array_key_exists('structure', $options)) {
+            throw new \InvalidArgumentException("Please, put structure data under the 'structure' key.");
         }
-
-        throw new \InvalidArgumentException("Unable to handle non array structures.");
     }
 }
