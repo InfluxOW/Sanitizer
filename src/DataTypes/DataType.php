@@ -2,9 +2,11 @@
 
 namespace Influx\Sanitizer\DataTypes;
 
-use Influx\Sanitizer\DataTypes\Contracts\DataType as DataTypeContract;
+use Influx\Sanitizer\DataTypes\Contracts\PreparesForTransmission;
+use Influx\Sanitizer\DataTypes\Contracts\PreparesForValidation;
+use Influx\Sanitizer\DataTypes\Contracts\Validatable;
 
-abstract class DataType implements DataTypeContract
+abstract class DataType implements Validatable, PreparesForTransmission, PreparesForValidation
 {
     public function getValidationErrorMessage(): string
     {
