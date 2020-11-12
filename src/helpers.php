@@ -1,8 +1,5 @@
 <?php
 
-use Influx\Sanitizer\Contracts\Validatable;
-use Influx\Sanitizer\DataTypes\OneTypeElementsArray;
-
 /**
  * Returns array without specified keys.
  *
@@ -85,7 +82,7 @@ function slugify(string $string): string
  * @param string $namespace
  * @return array
  */
-function parse_directory_classes_to_slug_classname_way(string $directory, string $namespace): array
+function parse_directory_classes_as_slug_to_classname(string $directory, string $namespace): array
 {
     $classes = [];
     $filePaths = glob("{$directory}/*.php");
@@ -96,11 +93,12 @@ function parse_directory_classes_to_slug_classname_way(string $directory, string
         $classes[] = $class;
     }
 
-    return parse_classes_to_slug_classname_way($classes);
+    return transform_classes_as_slug_to_classname($classes);
 }
 
 /**
  * Returns provided classes with their slugs.
+ *
  * Example:
  * [
  *  'class_one' => ClassOne::class,
@@ -110,7 +108,7 @@ function parse_directory_classes_to_slug_classname_way(string $directory, string
  * @param array $classes
  * @return array
  */
-function parse_classes_to_slug_classname_way(array $classes): array
+function transform_classes_as_slug_to_classname(array $classes): array
 {
     $result = [];
 

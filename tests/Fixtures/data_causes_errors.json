@@ -23,19 +23,19 @@
   },
   "rules": {
     "integer": {
-      "data_type": "integer"
+      "sanitizer_data_type": "integer"
     },
     "float": {
-      "data_type": "float"
+      "sanitizer_data_type": "float"
     },
     "string": {
-      "data_type": "string"
+      "sanitizer_data_type": "string"
     },
     "russian_federal_phone_number": {
-      "data_type": "russian_federal_phone_number"
+      "sanitizer_data_type": "russian_federal_phone_number"
     },
     "structure": {
-      "data_type": "structure",
+      "sanitizer_data_type": "structure",
       "structure": {
         "*": {
           "0": "value"
@@ -43,7 +43,7 @@
       }
     },
     "one_type_elements_array": {
-      "data_type": "one_type_elements_array",
+      "sanitizer_data_type": "one_type_elements_array",
       "elements_type": "string"
     }
   }

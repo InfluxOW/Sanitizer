@@ -46,6 +46,22 @@ class OneTypeElementsArray extends DataType
         }, $data);
     }
 
+    public function prepareForTransmission($data, array $options = [])
+    {
+        $this->verifyInput($data, $options);
+
+        $dataType = $this->resolver->getDataTypeInstance($options['elements_type']);
+        $options = array_unset_keys($options, ['resolver', 'elements_type']);
+
+        return array_map(function ($value) use ($options, $dataType) {
+            try {
+                return $dataType->prepareForTransmission($value, $options);
+            } catch (\InvalidArgumentException $e) {
+                throw new \InvalidArgumentException('Unable to convert provided type of data to one type elements array with specified elements type.');
+            }
+        }, $data);
+    }
+
     private function verifyInput($data, array $options): void
     {
         if (! is_array($data)) {

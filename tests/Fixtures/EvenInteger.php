@@ -4,9 +4,9 @@ namespace Influx\Sanitizer\Tests\Fixtures;
 
 use Influx\Sanitizer\DataTypes\DataType;
 
-class Divider extends DataType
+class EvenInteger extends DataType
 {
-    public static $slug = 'divider';
+    public static $slug = 'even_integer';
 
     public function validate($data, array $options = []): bool
     {
@@ -25,9 +25,8 @@ class Divider extends DataType
         throw new \InvalidArgumentException('Unable to convert provided type of data to integer.');
     }
 
-    public function afterValidation($data, array $options = [])
+    public function prepareForTransmission($data, array $options = [])
     {
         return $data / 2;
     }
-
 }

@@ -2,11 +2,20 @@
 
 namespace Influx\Sanitizer;
 
+use Influx\Sanitizer\DataTypes\Contracts\PreparesForTransmission;
+use Influx\Sanitizer\DataTypes\Contracts\PreparesForValidation;
+use Influx\Sanitizer\DataTypes\Contracts\Validatable;
+use Influx\Sanitizer\Exceptions\ValidationException;
 use Influx\Sanitizer\Services\DataParsers\Contracts\Invokable;
 use Influx\Sanitizer\Services\Resolver;
 
 class Sanitizer
 {
+    public const RULE_KEY_WHERE_DATA_TYPE_SLUG_SHOULD_BE = 'sanitizer_data_type';
+    public const GLOBAL_ERRORS_KEY = 'global_errors';
+    public const SANITATION_ERRORS_KEY = 'sanitation_errors';
+    public const SANITIZED_DATA_KEY = 'sanitized_data';
+
     protected $dataTypes;
     protected $parsers;
     protected Resolver $resolver;
@@ -46,17 +55,29 @@ class Sanitizer
      * @param string $inputFormat
      * @return array
      */
-    public function sanitize($input, array $rules = [], string $inputFormat = 'json'): array
+    public function sanitize($input, string $inputFormat = 'json', array $rules = []): array
     {
-        if (count(func_get_args()) === 1) {
-            try {
-                return $this->sanitizeValueRuleData($input, $inputFormat);
-            } catch (\Exception | \Error $e) {
-                return ['data' => [], 'sanitation_passed' => true];
-            }
+        try {
+            $data = $this->parseInput($input, $inputFormat);
+        } catch (\InvalidArgumentException $e) {
+            return [self::GLOBAL_ERRORS_KEY => [$e->getMessage()]];
         }
 
-        return $this->sanitizeDataWithFieldNamesProvided($input, $rules, $inputFormat);
+        if ($this->checkIfDataConsistsOfValueToRuleParams($data) && count(func_get_args()) < 3) {
+            [$data, $rules] = $this->transformValueToRuleDataIntoValuesAndRulesArrays($data);
+        }
+
+        try {
+            $this->verifyRules($rules);
+        } catch (\InvalidArgumentException $e) {
+            return [self::GLOBAL_ERRORS_KEY => [$e->getMessage()]];
+        }
+
+        [$sanitizedData, $sanitationErrors] = $this->sanitizeDataBySpecifiedRules($data, $rules);
+
+        return empty($sanitationErrors) ?
+            [self::SANITIZED_DATA_KEY => $sanitizedData] :
+            [self::SANITATION_ERRORS_KEY => $sanitationErrors];
     }
 
     /**
@@ -66,15 +87,16 @@ class Sanitizer
      */
     private function setDataTypes(array $customDataTypes): void
     {
-        $dataTypes = array_merge($this->getDefaultDataTypes(), parse_classes_to_slug_classname_way($customDataTypes));
+        $dataTypes = array_merge($this->getDefaultDataTypes(), transform_classes_as_slug_to_classname($customDataTypes));
+        $contract = Validatable::class;
 
-        if (check_array_elements_implements_interface($dataTypes, Validatable::class)) {
+        if (check_array_elements_implements_interface($dataTypes, $contract)) {
             $this->dataTypes = $dataTypes;
 
             return;
         }
 
-        throw new \InvalidArgumentException("Some provided data types are not resolving Validatable contract. Please, fix it.");
+        throw new \InvalidArgumentException("Some provided data types are not resolving '{$contract}' contract. Please, fix it.");
     }
 
     /**
@@ -84,7 +106,7 @@ class Sanitizer
      */
     private function setParsers(array $customParsers): void
     {
-        $parsers = array_merge($this->getDefaultParsers(), parse_classes_to_slug_classname_way($customParsers));
+        $parsers = array_merge($this->getDefaultParsers(), transform_classes_as_slug_to_classname($customParsers));
 
         if (check_array_elements_implements_interface($parsers, Invokable::class)) {
             $this->parsers = $parsers;
@@ -97,27 +119,24 @@ class Sanitizer
 
     /**
      * Applies specified rule to the data.
-     * Returns data if it passes validation.
-     * Normalizes data if it is normalizable.
      *
      * @param array $rule
      * @param $data
      * @return mixed
-     * @throws \Influx\Sanitizer\Exceptions\ValidationException
      */
     private function applyRule(array $rule, $data)
     {
-        $dataType = $this->resolver->getDataTypeInstance($rule['data_type']);
-        $options = array_unset_keys($rule, ['data_type']);
+        $dataType = $this->resolver->getDataTypeInstance($rule[self::RULE_KEY_WHERE_DATA_TYPE_SLUG_SHOULD_BE]);
+        $options = array_unset_keys($rule, [self::RULE_KEY_WHERE_DATA_TYPE_SLUG_SHOULD_BE]);
 
-        if ($dataType instanceof Normalizable) {
-            $data = $dataType->normalize($data, $options);
+        if ($dataType instanceof PreparesForValidation) {
+            $data = $dataType->prepareForValidation($data, $options);
         }
 
         $isDataValid = $dataType->validate($data, $options);
 
         if ($isDataValid) {
-            return $data;
+            return $dataType instanceof PreparesForTransmission ? $dataType->prepareForTransmission($data, $options) : $data;
         }
 
         throw new ValidationException($dataType->getValidationErrorMessage());
@@ -130,12 +149,14 @@ class Sanitizer
      */
     private function verifyRules(array $rules): void
     {
+        $key = self::RULE_KEY_WHERE_DATA_TYPE_SLUG_SHOULD_BE;
+
         foreach ($rules as $parameter => $rule) {
-            if (array_key_exists('data_type', $rule)) {
+            if (is_array($rule) && array_key_exists($key, $rule)) {
                 continue;
             }
 
-            throw new \InvalidArgumentException("Please, put data type under the 'data_type' key in the '$parameter' rule.");
+            throw new \InvalidArgumentException("Please, put data type under the '$key' key in the '$parameter' rule.");
         }
     }
 
@@ -164,9 +185,9 @@ class Sanitizer
      */
     private function getDefaultDataTypes()
     {
-        return parse_directory_classes_to_slug_classname_way(
-            __DIR__ . '/DataTypes',
-            'Influx\\Sanitizer\\DataTypes\\'
+        return parse_directory_classes_as_slug_to_classname(
+            __DIR__ . '/DataTypes/Implementations',
+            'Influx\\Sanitizer\\DataTypes\\Implementations\\'
         );
     }
 
@@ -177,70 +198,71 @@ class Sanitizer
      */
     private function getDefaultParsers()
     {
-        return parse_directory_classes_to_slug_classname_way(
-            __DIR__ . '/Services/DataParsers/Classes',
-            'Influx\\Sanitizer\\Services\\DataParsers\\Classes\\'
+        return parse_directory_classes_as_slug_to_classname(
+            __DIR__ . '/Services/DataParsers/Implementations',
+            'Influx\\Sanitizer\\Services\\DataParsers\\Implementations\\'
         );
     }
 
-    private function sanitizeDataWithFieldNamesProvided($input, $rules, $inputFormat)
+    private function checkIfDataConsistsOfValueToRuleParams(array $data): bool
     {
-        $result = [];
-        $errors = [];
-
-        try {
-            $data = $this->parseInput($input, $inputFormat);
-            $this->verifyRules($rules);
-        } catch (\Exception | \Error $e) {
-            $errors['global'][] = $e->getMessage();
-        } finally {
-            if (count($errors) === 0) {
-                foreach ($rules as $parameter => $rule) {
-                    if (array_key_exists($parameter, $data)) {
-                        try {
-                            $result[$parameter] = $this->applyRule($rule, $data[$parameter]);
-                        } catch (NormalizationException | ValidationException | \InvalidArgumentException $e) {
-                            $errors[$parameter] = ['message' => $e->getMessage(), 'data' => $data[$parameter], 'rule' => $rule];
-                        }
-
-                        continue;
-                    }
-
-                    $errors[$parameter] = "Unable to find specified key in the provided data.";
-                }
+        foreach ($data as $value => $rule) {
+            if (in_array($rule, $this->getAvailableDataTypes(), true)) {
+                continue;
             }
 
-            return empty($errors) ?
-                ['data' => $result, 'sanitation_passed' => true] :
-                ['data' => $errors, 'sanitation_passed' => false];
+            if (! is_array($rule)) {
+                return false;
+            }
+
+            if (! array_key_exists(self::RULE_KEY_WHERE_DATA_TYPE_SLUG_SHOULD_BE, $rule)) {
+                continue;
+            }
+
+            foreach ($rule as $fieldname => $dataType) {
+                if (! in_array($dataType, $this->getAvailableDataTypes(), true)) {
+                    return false;
+                }
+            }
         }
+
+
+
+        return true;
     }
 
-    private function sanitizeValueRuleData($input, string $inputFormat)
+    private function transformValueToRuleDataIntoValuesAndRulesArrays(array $data)
     {
-        $result = [];
-        $errors = [];
+        $values = [];
+        $rules = [];
 
-        try {
-            $data = $this->parseInput($input, $inputFormat);
-        } catch (\Exception | \Error $e) {
-            $errors['global'][] = $e->getMessage();
-        } finally {
-            if (count($errors) === 0) {
-                foreach ($data as $value => $rule) {
-                    try {
-                        $result[] = $this->applyRule($rule, $value);
-                    } catch (NormalizationException | ValidationException | \InvalidArgumentException $e) {
-                        $errors[] = ['message' => $e->getMessage(), 'data' => $value, 'rule' => $rule];
-                    }
+        foreach ($data as $value => $rule) {
+            $values[] = $value;
+            $rules[] = $rule;
+        }
 
-                    continue;
+        return [$values, $rules];
+    }
+
+    private function sanitizeDataBySpecifiedRules(array $data, array $rules)
+    {
+        $sanitizedData = [];
+        $sanitationErrors = [];
+
+        foreach ($rules as $parameter => $rule) {
+            if (array_key_exists($parameter, $data)) {
+                try {
+                    $sanitizedData[$parameter] = $this->applyRule($rule, $data[$parameter]);
+                } catch (\InvalidArgumentException | ValidationException $e) {
+                    $sanitationErrors[$parameter] = ['message' => $e->getMessage(), 'data' => $data[$parameter], 'rule' => $rule];
                 }
+
+                continue;
             }
 
-            return empty($errors) ?
-                ['data' => $result, 'sanitation_passed' => true] :
-                ['data' => $errors, 'sanitation_passed' => false];
+            $sanitationErrors[$parameter] = "Unable to find specified key in the provided data.";
         }
+
+        return [$sanitizedData, $sanitationErrors];
     }
 }

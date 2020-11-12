@@ -36,5 +36,4 @@ class RussianFederalPhoneNumber extends DataType
             throw new \InvalidArgumentException('Unable to handle non stringable data.');
         }
     }
-
 }

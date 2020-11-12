@@ -2,11 +2,12 @@
 
 namespace Influx\Sanitizer\Tests;
 
-use Influx\Sanitizer\DataTypes\Integer;
-use Influx\Sanitizer\DataTypes\RussianFederalPhoneNumber;
+use Influx\Sanitizer\DataTypes\Implementations\Integer;
+use Influx\Sanitizer\DataTypes\Implementations\RussianFederalPhoneNumber;
 use Influx\Sanitizer\Sanitizer;
 use Influx\Sanitizer\Services\DataParsers\Implementations\Json;
 use Influx\Sanitizer\Services\DataParsers\Contracts\Invokable;
+use Influx\Sanitizer\Tests\Fixtures\EvenInteger;
 use PHPUnit\Framework\TestCase;
 
 class SanitizerTest extends TestCase
@@ -20,6 +21,10 @@ class SanitizerTest extends TestCase
         $this->sanitizer = new Sanitizer();
     }
 
+    /*
+     * FEIP Test Cases
+     * */
+
     /** @test */
     public function it_properly_passes_first_example_test_case()
     {
@@ -31,101 +36,80 @@ class SanitizerTest extends TestCase
 
         self::assertNotEquals($validData, $initialData);
 
-        ['sanitation_passed' => $status, 'data' => $result] = $this->sanitizer->sanitize($initialData, $rules);
+        $result = $this->sanitizer->sanitize(
+            json_encode($initialData, JSON_THROW_ON_ERROR),
+            'json',
+            $rules
+        );
 
-        self::assertTrue($status);
-        self::assertEquals($validData, $result);
+        self::assertArrayHasKey($this->sanitizer::SANITIZED_DATA_KEY, $result);
+        self::assertEquals($validData, $result[$this->sanitizer::SANITIZED_DATA_KEY]);
     }
 
     /** @test */
     public function it_properly_passes_second_example_test_case()
     {
         $value = '123абв';
-        $rule = ['data_type' => Integer::$slug];
-        $data = json_encode([$value => $rule], JSON_THROW_ON_ERROR);
+        $rule = [$this->sanitizer::RULE_KEY_WHERE_DATA_TYPE_SLUG_SHOULD_BE => Integer::$slug];
+        $data = json_encode([$value => $rule], JSON_THROW_ON_ERROR); // equals {"123абв":{"sanitizer_data_type":"integer"}}
 
-        ['sanitation_passed' => $status, 'data' => $errors] = $this->sanitizer->sanitize($data);
+        $result = $this->sanitizer->sanitize($data);
 
-        self::assertFalse($status); // it means error was generated
-        self::assertArrayHasKey('message', $errors[0]);
-        self::assertEquals($errors[0]['data'], $value);
+        self::assertArrayHasKey($this->sanitizer::SANITATION_ERRORS_KEY, $result); // it means sanitation error has been generated
+        self::assertEquals($result[$this->sanitizer::SANITATION_ERRORS_KEY][0]['data'], $value); // it means value in sanitation error data equals provided value
     }
 
     /** @test */
     public function it_properly_passes_third_example_test_case()
     {
         $value = '260557';
-        $rule = ['data_type' => RussianFederalPhoneNumber::$slug];
-        $data = json_encode([$value => $rule], JSON_THROW_ON_ERROR);
+        $rule = [$this->sanitizer::RULE_KEY_WHERE_DATA_TYPE_SLUG_SHOULD_BE  => RussianFederalPhoneNumber::$slug];
+        $data = json_encode([$value => $rule], JSON_THROW_ON_ERROR); // equals {"260557":{"sanitizer_data_type":"russian_federal_phone_number"}}
 
-        ['sanitation_passed' => $status, 'data' => $errors] = $this->sanitizer->sanitize($data);
+        $result = $this->sanitizer->sanitize($data);
 
-        self::assertFalse($status); // it means error was generated
-        self::assertArrayHasKey('message', $errors[0]);
-        self::assertEquals($errors[0]['data'], $value);
+        self::assertArrayHasKey($this->sanitizer::SANITATION_ERRORS_KEY, $result); // it means sanitation error has been generated
+        self::assertEquals($result[$this->sanitizer::SANITATION_ERRORS_KEY][0]['data'], $value); // it means value in sanitation error data equals provided value
     }
 
-    /** @test */
-    public function it_generates_an_error_for_wrong_data_passed_in_integer_field_data_type()
-    {
-        $field = 'some_integer_field';
-        $fieldValue = '123абв';
-        $data = json_encode([$field => $fieldValue], JSON_THROW_ON_ERROR); // equals {"some_integer_field":"123абв"}
-        $rules = [$field => ['data_type' => Integer::$slug]];
-
-        ['sanitation_passed' => $status, 'data' => $errors] = $this->sanitizer->sanitize($data, $rules);
-
-        self::assertFalse($status);
-        self::assertArrayHasKey('message', $errors[$field]);
-        self::assertEquals($errors[$field]['data'], $fieldValue);
-    }
-
-    /** @test */
-    public function it_generates_an_error_for_wrong_data_passed_in_russian_federal_phone_number_field_data_type()
-    {
-        $field = 'some_russian_federal_phone_number_field';
-        $fieldValue = '260557';
-        $data = json_encode([$field => $fieldValue], JSON_THROW_ON_ERROR); // equals {"some_russian_federal_phone_number_field":"260557"}
-        $rules = [$field => ['data_type' => RussianFederalPhoneNumber::$slug]];
-
-        ['sanitation_passed' => $status, 'data' => $errors] = $this->sanitizer->sanitize($data, $rules);
-
-        self::assertFalse($status);
-        self::assertArrayHasKey('message', $errors[$field]);
-        self::assertEquals($errors[$field]['data'], $fieldValue);
-    }
+    /*
+     * My Test Cases
+     * */
 
     /** @test */
     public function valid_data_passes_its_sanitation()
     {
         ['data' => $data, 'rules' => $rules] = (new Json())(file_get_contents(__DIR__ . '/Fixtures/valid_data.json'));
-        ['sanitation_passed' => $status] = $this->sanitizer->sanitize($data, $rules);
 
-        self::assertTrue($status);
+        $result = $this->sanitizer->sanitize($data, 'array', $rules);
+
+        self::assertArrayHasKey($this->sanitizer::SANITIZED_DATA_KEY, $result);
+        self::assertEquals($data, $result[$this->sanitizer::SANITIZED_DATA_KEY]);
     }
 
     /** @test */
-    public function invalid_data_may_be_normalized_so_it_will_pass_sanitation()
+    public function invalid_data_may_be_prepared_for_validation_so_it_will_pass_sanitation()
     {
         ['data' => $data, 'rules' => $rules] = (new Json())(file_get_contents(__DIR__ . '/Fixtures/valid_after_normalization_data.json'));
         ['data' => $validData] = (new Json())(file_get_contents(__DIR__ . '/Fixtures/valid_data.json'));
 
         self::assertNotEquals($validData, $data);
 
-        ['sanitation_passed' => $status, 'data' => $result] = $this->sanitizer->sanitize($data, $rules);
+        $result = $this->sanitizer->sanitize($data, 'array', $rules);
 
-        self::assertTrue($status);
-        self::assertEquals($validData, $result);
+        self::assertArrayHasKey($this->sanitizer::SANITIZED_DATA_KEY, $result);
+        self::assertEquals($validData, $result[$this->sanitizer::SANITIZED_DATA_KEY]);
     }
 
     /** @test */
     public function it_returns_array_of_errors_for_every_invalid_value_if_data_can_not_pass_sanitation()
     {
         ['data' => $data, 'rules' => $rules] = (new Json())(file_get_contents(__DIR__ . '/Fixtures/data_causes_errors.json'));
-        ['sanitation_passed' => $status, 'data' => $errors] = $this->sanitizer->sanitize($data, $rules);
 
-        self::assertFalse($status);
-        self::assertSame(array_keys($errors), array_keys($data));
+        $result = $this->sanitizer->sanitize($data, 'array', $rules);
+
+        self::assertArrayHasKey($this->sanitizer::SANITATION_ERRORS_KEY, $result);
+        self::assertEquals(array_keys($data), array_keys($result[$this->sanitizer::SANITATION_ERRORS_KEY]));
     }
 
     /** @test */
@@ -133,38 +117,40 @@ class SanitizerTest extends TestCase
     {
         ['data' => $data] = (new Json())(file_get_contents(__DIR__ . '/Fixtures/valid_data.json'));
 
-        ['data' => $result] = $this->sanitizer->sanitize($data);
+        $result = $this->sanitizer->sanitize($data);
 
-        self::assertEmpty($result);
+        self::assertEmpty($result[$this->sanitizer::SANITIZED_DATA_KEY]);
     }
 
     /** @test */
     public function it_returns_error_when_no_data_was_found_by_specified_rule_key()
     {
         ['data' => $data] = (new Json())(file_get_contents(__DIR__ . '/Fixtures/valid_data.json'));
+        $invalidKey = 'nonexistent_key';
+        $rules = [ $invalidKey => [$this->sanitizer::RULE_KEY_WHERE_DATA_TYPE_SLUG_SHOULD_BE => ['string']]];
 
-        ['data' => $errors, 'sanitation_passed' => $status] = $this->sanitizer->sanitize($data, ['nonexistent_key' => ['data_type' => ['string']]]);
+        $result = $this->sanitizer->sanitize($data, 'array', $rules);
 
-        self::assertFalse($status);
-        self::assertArrayHasKey('nonexistent_key', $errors);
+        self::assertArrayHasKey($this->sanitizer::SANITATION_ERRORS_KEY, $result);
+        self::assertContains($invalidKey, array_keys($result[$this->sanitizer::SANITATION_ERRORS_KEY]));
     }
 
     /** @test */
     public function it_returns_global_error_if_invalid_data_format_was_provided()
     {
-        ['sanitation_passed' => $status, 'data' => $errors] = $this->sanitizer->sanitize('data', [], 'wrong_data_format');
+        $result = $this->sanitizer->sanitize('data', 'wrong_data_format', []);
 
-        self::assertFalse($status);
-        self::assertArrayHasKey('global', $errors);
+        self::assertArrayHasKey($this->sanitizer::GLOBAL_ERRORS_KEY, $result);
+        self::assertCount(1, $result[$this->sanitizer::GLOBAL_ERRORS_KEY]);
     }
 
     /** @test */
     public function it_returns_global_error_when_unable_to_parse_specified_data_format()
     {
-        ['sanitation_passed' => $status, 'data' => $errors] = $this->sanitizer->sanitize('not_a_json_data', [], 'json');
+        $result = $this->sanitizer->sanitize('not_a_json_data', 'json', []);
 
-        self::assertFalse($status);
-        self::assertArrayHasKey('global', $errors);
+        self::assertArrayHasKey($this->sanitizer::GLOBAL_ERRORS_KEY, $result);
+        self::assertCount(1, $result[$this->sanitizer::GLOBAL_ERRORS_KEY]);
     }
 
     /** @test */
@@ -172,10 +158,18 @@ class SanitizerTest extends TestCase
     {
         ['data' => $data] = (new Json())(file_get_contents(__DIR__ . '/Fixtures/valid_data.json'));
 
-        ['sanitation_passed' => $status, 'data' => $errors] = $this->sanitizer->sanitize($data, ['integer' => []], 'json');
+        $result = $this->sanitizer->sanitize($data, 'json', ['integer' => []]);
 
-        self::assertFalse($status);
-        self::assertArrayHasKey('global', $errors);
+        self::assertArrayHasKey($this->sanitizer::GLOBAL_ERRORS_KEY, $result);
+        self::assertCount(1, $result[$this->sanitizer::GLOBAL_ERRORS_KEY]);
+    }
+
+    /** @test */
+    public function it_may_be_extended_with_custom_data_types()
+    {
+        $sanitizer = new Sanitizer([EvenInteger::class]);
+
+        self::assertContains(EvenInteger::$slug, $sanitizer->getAvailableDataTypes());
     }
 
     /** @test */

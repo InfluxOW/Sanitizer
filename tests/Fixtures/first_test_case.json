@@ -11,13 +11,13 @@
   },
   "rules": {
     "foo": {
-      "data_type": "integer"
+      "sanitizer_data_type": "integer"
     },
     "bar": {
-      "data_type": "string"
+      "sanitizer_data_type": "string"
     },
     "baz": {
-      "data_type": "russian_federal_phone_number"
+      "sanitizer_data_type": "russian_federal_phone_number"
     }
   }
 }
