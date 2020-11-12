@@ -5,7 +5,7 @@ namespace Influx\Sanitizer\Tests;
 use Influx\Sanitizer\DataTypes\Integer;
 use Influx\Sanitizer\DataTypes\RussianFederalPhoneNumber;
 use Influx\Sanitizer\Sanitizer;
-use Influx\Sanitizer\Services\DataParsers\Classes\Json;
+use Influx\Sanitizer\Services\DataParsers\Implementations\Json;
 use Influx\Sanitizer\Services\DataParsers\Contracts\Invokable;
 use PHPUnit\Framework\TestCase;
 

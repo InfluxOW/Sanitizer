@@ -13,12 +13,12 @@ abstract class DataType implements DataTypeContract
         return "{$readableDataTypeName} is not the type of provided data.";
     }
 
-    public function afterValidation($data, array $options = [])
+    public function prepareForTransmission($data, array $options = [])
     {
         return $data;
     }
 
-    public function beforeValidation($data, array $options = [])
+    public function prepareForValidation($data, array $options = [])
     {
         return $data;
     }

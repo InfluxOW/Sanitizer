@@ -13,7 +13,7 @@ class Integer extends DataType
         return is_int($data);
     }
 
-    public function beforeValidation($data, array $options = [])
+    public function prepareForValidation($data, array $options = [])
     {
         if (
             is_numeric($data) ||

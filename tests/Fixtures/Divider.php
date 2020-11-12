@@ -13,7 +13,7 @@ class Divider extends DataType
         return is_int($data) && $data % 2 === 0;
     }
 
-    public function beforeValidation($data, array $options = [])
+    public function prepareForValidation($data, array $options = [])
     {
         if (
             is_numeric($data) ||

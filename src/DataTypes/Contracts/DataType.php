@@ -22,22 +22,22 @@ interface DataType
     public function getValidationErrorMessage(): string;
 
     /**
-     * Do something with data if it is valid.
+     * Prepare data for transmission outside if it was valid.
      *
      * @param $data
      * @param array $options
      * @throws \InvalidArgumentException
      * @return mixed
      */
-    public function afterValidation($data, array $options = []);
+    public function prepareForTransmission($data, array $options = []);
 
     /**
-     * Do something with data before it has been validated.
+     * Prepare data for validation.
      *
      * @param $data
      * @param array $options
      * @throws \InvalidArgumentException
      * @return mixed
      */
-    public function beforeValidation($data, array $options = []);
+    public function prepareForValidation($data, array $options = []);
 }

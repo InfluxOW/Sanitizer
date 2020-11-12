@@ -13,7 +13,7 @@ class Str extends DataType
         return is_string($data);
     }
 
-    public function beforeValidation($data, array $options = [])
+    public function prepareForValidation($data, array $options = [])
     {
         try {
             return (string) $data;

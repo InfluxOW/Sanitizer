@@ -1,6 +1,6 @@
 <?php
 
-namespace Influx\Sanitizer\Services\DataParsers\Classes;
+namespace Influx\Sanitizer\Services\DataParsers\Implementations;
 
 use Influx\Sanitizer\Services\DataParsers\Contracts\Invokable;
 

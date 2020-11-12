@@ -15,7 +15,7 @@ class RussianFederalPhoneNumber extends DataType
         return preg_match('/^7[489]\d{9}$/', $data);
     }
 
-    public function beforeValidation($data, array $options = [])
+    public function prepareForValidation($data, array $options = [])
     {
         $this->verifyInput($data);
 

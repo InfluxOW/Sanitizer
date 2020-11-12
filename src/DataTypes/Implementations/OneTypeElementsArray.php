@@ -30,7 +30,7 @@ class OneTypeElementsArray extends DataType
         return $correctTypeData === $data;
     }
 
-    public function beforeValidation($data, array $options = [])
+    public function prepareForValidation($data, array $options = [])
     {
         $this->verifyInput($data, $options);
 
@@ -39,7 +39,7 @@ class OneTypeElementsArray extends DataType
 
         return array_map(function ($value) use ($options, $dataType) {
             try {
-                return $dataType->beforeValidation($value, $options);
+                return $dataType->prepareForValidation($value, $options);
             } catch (\InvalidArgumentException $e) {
                 throw new \InvalidArgumentException('Unable to convert provided type of data to one type elements array with specified elements type.');
             }

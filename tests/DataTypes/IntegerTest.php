@@ -39,7 +39,7 @@ class IntegerTest extends TestCase
     {
         self::assertFalse($this->dataType->validate($data));
 
-        $normalized = $this->dataType->beforeValidation($data);
+        $normalized = $this->dataType->prepareForValidation($data);
 
         self::assertTrue($this->dataType->validate($normalized));
     }
@@ -53,7 +53,7 @@ class IntegerTest extends TestCase
     {
         $this->expectException(\InvalidArgumentException::class);
 
-        $this->dataType->beforeValidation($data);
+        $this->dataType->prepareForValidation($data);
     }
 
     public function dataForValidationCheck()

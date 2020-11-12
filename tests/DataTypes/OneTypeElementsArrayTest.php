@@ -51,7 +51,7 @@ class OneTypeElementsArrayTest extends TestCase
     {
         self::assertFalse($this->dataType->validate($data, $options));
 
-        $normalized = $this->dataType->beforeValidation($data, $options);
+        $normalized = $this->dataType->prepareForValidation($data, $options);
 
         self::assertTrue($this->dataType->validate($normalized, $options));
     }
@@ -66,7 +66,7 @@ class OneTypeElementsArrayTest extends TestCase
     {
         $this->expectException(\InvalidArgumentException::class);
 
-        $this->dataType->beforeValidation($data, $options);
+        $this->dataType->prepareForValidation($data, $options);
     }
 
     /** @test */
@@ -86,7 +86,7 @@ class OneTypeElementsArrayTest extends TestCase
         $options = [];
 
         $this->expectException(\InvalidArgumentException::class);
-        $this->dataType->beforeValidation($data, $options);
+        $this->dataType->prepareForValidation($data, $options);
     }
 
     /** @test */
@@ -106,7 +106,7 @@ class OneTypeElementsArrayTest extends TestCase
         $options = ['elements_type' => OneTypeElementsArray::$slug];
 
         $this->expectException(\InvalidArgumentException::class);
-        $this->dataType->beforeValidation($data, $options);
+        $this->dataType->prepareForValidation($data, $options);
     }
 
     /** @test
@@ -128,7 +128,7 @@ class OneTypeElementsArrayTest extends TestCase
     {
         $this->expectException(\InvalidArgumentException::class);
 
-        $this->dataType->beforeValidation($data);
+        $this->dataType->prepareForValidation($data);
     }
 
     public function dataForValidationCheck()
